@@ -391,3 +391,26 @@ class ApplicantProfileUpdateSerializer(serializers.ModelSerializer):
 
 class EmployerResponseSerializer(ApplicationListSerializer):
     pass
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=4)
+    new_password_repeat = serializers.CharField(write_only=True, min_length=4)
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+
+        if attrs["new_password"] != attrs["new_password_repeat"]:
+            raise serializers.ValidationError({"new_password_repeat": "Пароли не совпадают."})
+
+        if not user.check_password(attrs["old_password"]):
+            raise serializers.ValidationError({"old_password": "Старый пароль указан неверно."})
+
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.save(update_fields=["password"])
+        return user

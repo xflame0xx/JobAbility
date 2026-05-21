@@ -3,48 +3,91 @@ import time
 from django.http import HttpResponse
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
-HTTP_REQUESTS_TOTAL = Counter(  # количество HTTP-запросов
+HTTP_REQUESTS_TOTAL = Counter(
     "http_requests_total",
-    "Total number of HTTP requests",
+    "Total number of HTTP requests handled by Django backend",
     ["method", "path", "status"],
 )
 
-HTTP_ERRORS_TOTAL = Counter(  # количество ошибок 4xx и 5xx
+HTTP_ERRORS_TOTAL = Counter(
     "http_errors_total",
-    "Total number of HTTP 4xx and 5xx errors",
+    "Total number of HTTP errors handled by Django backend",
     ["method", "path", "status"],
 )
 
-HTTP_RESPONSE_TIME_SECONDS = Histogram(  # время ответа backend
+HTTP_RESPONSE_TIME_SECONDS = Histogram(
     "http_response_time_seconds",
     "HTTP response time in seconds",
     ["method", "path"],
 )
 
-AUTH_ATTEMPTS_TOTAL = Counter(  # количество успешных и неуспешных авторизаций
+AUTH_ATTEMPTS_TOTAL = Counter(
     "auth_attempts_total",
     "Total authentication attempts",
     ["result"],
 )
 
+CACHE_OPERATIONS_TOTAL = Counter(
+    "cache_operations_total",
+    "Total number of cache operations",
+    ["resource", "result"],
+)
+
+
+def is_prometheus_metrics_request(request) -> bool:
+    return request.path.rstrip("/") == "/metrics"
+
+
+def get_metric_path(request) -> str:
+    """Возвращает стабильное имя маршрута для Prometheus."""
+    match = getattr(request, "resolver_match", None)
+
+    if match and match.route:
+        return match.route
+
+    return request.path
+
 
 class PrometheusMetricsMiddleware:
+    """Middleware для сбора HTTP-метрик Prometheus."""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        start_time = time.perf_counter()
+        if is_prometheus_metrics_request(request):
+            return self.get_response(request)
 
-        response = self.get_response(request)
+        start_time = time.perf_counter()
+        method = request.method
+
+        try:
+            response = self.get_response(request)
+        except Exception:
+            duration = time.perf_counter() - start_time
+            path = get_metric_path(request)
+
+            HTTP_REQUESTS_TOTAL.labels(
+                method=method,
+                path=path,
+                status="500",
+            ).inc()
+
+            HTTP_ERRORS_TOTAL.labels(
+                method=method,
+                path=path,
+                status="500",
+            ).inc()
+
+            HTTP_RESPONSE_TIME_SECONDS.labels(
+                method=method,
+                path=path,
+            ).observe(duration)
+
+            raise
 
         duration = time.perf_counter() - start_time
-
-        if request.resolver_match:
-            path = request.resolver_match.route
-        else:
-            path = request.path
-
-        method = request.method
+        path = get_metric_path(request)
         status_code = str(response.status_code)
 
         HTTP_REQUESTS_TOTAL.labels(

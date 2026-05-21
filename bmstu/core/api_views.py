@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -28,9 +28,17 @@ from .api_serializers import (
     LoginResponseSerializer,
     LoginSerializer,
     LogoutResponseSerializer,
+    PasswordChangeSerializer,
     RegisterSerializer,
     VacancyModerationSerializer,
     VacancySerializer,
+)
+from .cache_utils import (
+    build_public_vacancies_cache_key,
+    get_cached_public_vacancies,
+    get_public_vacancies_cache_ttl,
+    invalidate_public_vacancies_cache,
+    set_cached_public_vacancies,
 )
 from .metrics import AUTH_ATTEMPTS_TOTAL
 from .Models import Application, ApplicationVacancy, UserAccount, Vacancy
@@ -49,17 +57,19 @@ from .services import (
     reject_vacancy,
 )
 
-logger = logging.getLogger("core.auth")
+auth_logger = logging.getLogger("core.auth")
+business_logger = logging.getLogger("core.business")
 
 
 class RoleAwareApiView(APIView):
     def require_authenticated(self, request):
         if not request.user.is_authenticated:
-            logger.warning(
+            auth_logger.warning(
                 "Access without authentication method=%s path=%s result=UNAUTHORIZED",
                 request.method,
                 request.path,
             )
+
             return Response(
                 {"detail": "Требуется авторизация."},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -70,19 +80,25 @@ class RoleAwareApiView(APIView):
     def require_role(self, request, *roles):
         auth_error = self.require_authenticated(request)
 
-        if auth_error:
+        if auth_error is not None:
             return auth_error
 
         actual_role = get_user_role(request.user)
 
-        if actual_role not in set(roles):
-            logger.warning(
+        # Для лабораторной:
+        # moderator = ADMIN
+        # applicant / employer = USER
+        #
+        # Поэтому moderator проходит проверки всех защищённых методов.
+        if actual_role != UserAccount.Role.MODERATOR and actual_role not in set(roles):
+            auth_logger.warning(
                 "Authorization denied method=%s path=%s role=%s required_roles=%s result=FORBIDDEN",
                 request.method,
                 request.path,
                 actual_role,
-                ",".join(roles),
+                ",".join(str(role) for role in roles),
             )
+
             return Response(
                 {"detail": "Недостаточно прав."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -97,7 +113,8 @@ class RoleAwareApiView(APIView):
         summary="Получить список опубликованных вакансий",
         description=(
             "Публичный метод. Без авторизации доступны только опубликованные вакансии. "
-            "Поддерживает фильтрацию по search, company, city, schedule, disability_support."
+            "Поддерживает фильтрацию по search, company, city, schedule, disability_support. "
+            "Список вакансий кэшируется на backend с TTL."
         ),
         responses={200: VacancySerializer(many=True)},
         operation_id="vacancy_list",
@@ -107,7 +124,8 @@ class RoleAwareApiView(APIView):
         summary="Создать вакансию",
         description=(
             "Доступно только работодателю. Новая вакансия создаётся в статусе "
-            "PENDING и отправляется на модерацию."
+            "PENDING и отправляется на модерацию. После создания вакансии "
+            "backend-кэш списка вакансий инвалидируется."
         ),
         request=VacancySerializer,
         responses={
@@ -120,6 +138,17 @@ class RoleAwareApiView(APIView):
 )
 class VacancyListCreateApi(RoleAwareApiView):
     def get(self, request):
+        cache_key = build_public_vacancies_cache_key(request.query_params)
+        cached_data = get_cached_public_vacancies(cache_key)
+
+        if cached_data is not None:
+            response = Response(cached_data)
+            response["X-Cache-Status"] = "HIT"
+            response["X-Cache-Key"] = cache_key
+            response["X-Cache-TTL"] = str(get_public_vacancies_cache_ttl())
+
+            return response
+
         search = request.query_params.get("search", "").strip()
         company = request.query_params.get("company", "").strip()
         city = request.query_params.get("city", "").strip()
@@ -182,12 +211,22 @@ class VacancyListCreateApi(RoleAwareApiView):
             many=True,
             context={"request": request},
         )
-        return Response(serializer.data)
+
+        data = list(serializer.data)
+
+        set_cached_public_vacancies(cache_key, data)
+
+        response = Response(data)
+        response["X-Cache-Status"] = "MISS"
+        response["X-Cache-Key"] = cache_key
+        response["X-Cache-TTL"] = str(get_public_vacancies_cache_ttl())
+
+        return response
 
     def post(self, request):
         role_error = self.require_role(request, UserAccount.Role.EMPLOYER)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         serializer = VacancySerializer(data=request.data, context={"request": request})
@@ -197,6 +236,15 @@ class VacancyListCreateApi(RoleAwareApiView):
             creator=request.user,
             moderation_status=Vacancy.ModerationStatus.PENDING,
             is_active=False,
+        )
+
+        invalidate_public_vacancies_cache("vacancy_created")
+
+        business_logger.info(
+            "Vacancy created method=%s vacancy_id=%s creator=%s result=OK",
+            request.method,
+            vacancy.id,
+            request.user.username,
         )
 
         return Response(
@@ -243,7 +291,7 @@ class VacancyModerationApi(RoleAwareApiView):
     def put(self, request, pk):
         role_error = self.require_role(request, UserAccount.Role.MODERATOR)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         serializer = VacancyModerationSerializer(data=request.data)
@@ -257,6 +305,16 @@ class VacancyModerationApi(RoleAwareApiView):
             approve_vacancy(vacancy, request.user, note)
         else:
             reject_vacancy(vacancy, request.user, note)
+
+        invalidate_public_vacancies_cache(f"vacancy_moderated_{action}")
+
+        business_logger.info(
+            "Vacancy moderation method=%s vacancy_id=%s action=%s moderator=%s result=OK",
+            request.method,
+            vacancy.id,
+            action,
+            request.user.username,
+        )
 
         return Response(VacancySerializer(vacancy, context={"request": request}).data)
 
@@ -297,7 +355,7 @@ class ApplicationLineApi(RoleAwareApiView):
     def post(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         serializer = ApplicationLineMutationSerializer(data=request.data)
@@ -312,6 +370,7 @@ class ApplicationLineApi(RoleAwareApiView):
         )
 
         line = app.lines.filter(vacancy=vacancy).first()
+        created = line is None
 
         if line is None:
             line = ApplicationVacancy.objects.create(
@@ -343,6 +402,15 @@ class ApplicationLineApi(RoleAwareApiView):
         recalc_application_sum(app)
         line.refresh_from_db()
 
+        business_logger.info(
+            "Application line %s method=%s application_id=%s vacancy_id=%s user=%s result=OK",
+            "created" if created else "updated",
+            request.method,
+            app.id,
+            vacancy.id,
+            request.user.username,
+        )
+
         return Response(
             {
                 "application_id": app.id,
@@ -357,7 +425,7 @@ class ApplicationLineApi(RoleAwareApiView):
     def put(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         serializer = ApplicationLineMutationSerializer(data=request.data)
@@ -383,12 +451,20 @@ class ApplicationLineApi(RoleAwareApiView):
         recalc_application_sum(app)
         line.refresh_from_db()
 
+        business_logger.info(
+            "Application line updated method=%s application_id=%s vacancy_id=%s user=%s result=OK",
+            request.method,
+            app.id,
+            line.vacancy_id,
+            request.user.username,
+        )
+
         return Response(ApplicationLineSerializer(line, context={"request": request}).data)
 
     def delete(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         serializer = ApplicationLineMutationSerializer(data=request.data)
@@ -406,8 +482,18 @@ class ApplicationLineApi(RoleAwareApiView):
             vacancy_id=serializer.validated_data["vacancy_id"],
         )
 
+        vacancy_id = line.vacancy_id
+
         line.delete()
         recalc_application_sum(app)
+
+        business_logger.info(
+            "Application line deleted method=%s application_id=%s vacancy_id=%s user=%s result=OK",
+            request.method,
+            app.id,
+            vacancy_id,
+            request.user.username,
+        )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -423,7 +509,7 @@ class ApplicationCartApi(RoleAwareApiView):
     def get(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = Application.objects.filter(
@@ -464,7 +550,7 @@ class ApplicationListApi(RoleAwareApiView):
             UserAccount.Role.MODERATOR,
         )
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         status_value = request.query_params.get("status", "").strip()
@@ -510,7 +596,9 @@ class ApplicationListApi(RoleAwareApiView):
 class ApplicationDetailUpdateApi(RoleAwareApiView):
     def get_object(self, request, pk):
         qs = Application.objects.select_related(
-            "creator", "moderator", "applicant"
+            "creator",
+            "moderator",
+            "applicant",
         ).prefetch_related("lines__vacancy")
 
         if get_user_role(request.user) == UserAccount.Role.MODERATOR:
@@ -525,7 +613,7 @@ class ApplicationDetailUpdateApi(RoleAwareApiView):
             UserAccount.Role.MODERATOR,
         )
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = self.get_object(request, pk)
@@ -541,7 +629,7 @@ class ApplicationDetailUpdateApi(RoleAwareApiView):
     def put(self, request, pk):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = get_object_or_404(Application, pk=pk, creator=request.user)
@@ -549,6 +637,13 @@ class ApplicationDetailUpdateApi(RoleAwareApiView):
         serializer = ApplicationUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update(app, serializer.validated_data)
+
+        business_logger.info(
+            "Application updated method=%s application_id=%s user=%s result=OK",
+            request.method,
+            app.id,
+            request.user.username,
+        )
 
         return Response(ApplicationDetailSerializer(app, context={"request": request}).data)
 
@@ -568,7 +663,7 @@ class ApplicationFormApi(RoleAwareApiView):
     def put(self, request, pk):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = get_object_or_404(Application, pk=pk, creator=request.user)
@@ -580,13 +675,20 @@ class ApplicationFormApi(RoleAwareApiView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
+        business_logger.info(
+            "Application formed method=%s application_id=%s user=%s result=OK",
+            request.method,
+            app.id,
+            request.user.username,
+        )
+
         return Response(ApplicationDetailSerializer(app, context={"request": request}).data)
 
 
 @extend_schema(
     tags=["applications"],
     summary="Завершить или отклонить заявку модератором",
-    description=("Только модератор может выполнять этот метод. Создатель заявки получит 403."),
+    description="Только модератор может выполнять этот метод. Создатель заявки получит 403.",
     request=ApplicationModerationSerializer,
     responses={
         200: ApplicationDetailSerializer,
@@ -599,7 +701,7 @@ class ApplicationModerationApi(RoleAwareApiView):
     def put(self, request, pk):
         role_error = self.require_role(request, UserAccount.Role.MODERATOR)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = get_object_or_404(Application, pk=pk)
@@ -610,6 +712,14 @@ class ApplicationModerationApi(RoleAwareApiView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        business_logger.info(
+            "Application moderated method=%s application_id=%s moderator=%s status=%s result=OK",
+            request.method,
+            app.id,
+            request.user.username,
+            app.status,
+        )
 
         return Response(ApplicationDetailSerializer(app, context={"request": request}).data)
 
@@ -625,14 +735,22 @@ class ApplicationDeleteApi(RoleAwareApiView):
     def delete(self, request, pk):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         app = get_object_or_404(Application, pk=pk, creator=request.user)
+        app_id = app.id
 
         serializer = ApplicationDeleteSerializer(data={}, context={"application": app})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        business_logger.info(
+            "Application deleted method=%s application_id=%s user=%s result=OK",
+            request.method,
+            app_id,
+            request.user.username,
+        )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -659,7 +777,7 @@ class RegisterApi(APIView):
         user = serializer.save()
         role = get_user_role(user)
 
-        logger.info(
+        auth_logger.info(
             "User created method=%s username=%s role=%s result=OK",
             request.method,
             user.username,
@@ -728,7 +846,7 @@ class LoginApi(APIView):
         if user is None:
             AUTH_ATTEMPTS_TOTAL.labels(result="failure").inc()
 
-            logger.warning(
+            auth_logger.warning(
                 "Authentication failed method=%s username=%s result=FAIL",
                 request.method,
                 username,
@@ -743,7 +861,7 @@ class LoginApi(APIView):
 
         AUTH_ATTEMPTS_TOTAL.labels(result="success").inc()
 
-        logger.info(
+        auth_logger.info(
             "Authentication success method=%s username=%s role=%s result=OK",
             request.method,
             username,
@@ -771,14 +889,14 @@ class LogoutApi(RoleAwareApiView):
     def post(self, request):
         auth_error = self.require_authenticated(request)
 
-        if auth_error:
+        if auth_error is not None:
             return auth_error
 
         username = request.user.username
 
         logout(request)
 
-        logger.info(
+        auth_logger.info(
             "Logout success method=%s username=%s result=OK",
             request.method,
             username,
@@ -798,7 +916,7 @@ class CurrentUserApi(RoleAwareApiView):
     def get(self, request):
         auth_error = self.require_authenticated(request)
 
-        if auth_error:
+        if auth_error is not None:
             return auth_error
 
         return Response(
@@ -813,7 +931,7 @@ class ApplicantProfileApi(RoleAwareApiView):
     def get(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         profile = get_or_create_profile(request.user)
@@ -823,7 +941,7 @@ class ApplicantProfileApi(RoleAwareApiView):
     def put(self, request):
         role_error = self.require_role(request, UserAccount.Role.APPLICANT)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         profile = get_or_create_profile(request.user)
@@ -836,6 +954,12 @@ class ApplicantProfileApi(RoleAwareApiView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
+        business_logger.info(
+            "Applicant profile updated method=%s user=%s result=OK",
+            request.method,
+            request.user.username,
+        )
+
         return Response(serializer.data)
 
 
@@ -843,7 +967,7 @@ class MyVacanciesApi(RoleAwareApiView):
     def get(self, request):
         role_error = self.require_role(request, UserAccount.Role.EMPLOYER)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         qs = Vacancy.objects.filter(creator=request.user).order_by("-id")
@@ -855,7 +979,7 @@ class PendingVacanciesApi(RoleAwareApiView):
     def get(self, request):
         role_error = self.require_role(request, UserAccount.Role.MODERATOR)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         qs = (
@@ -871,9 +995,42 @@ class EmployerResponsesApi(RoleAwareApiView):
     def get(self, request):
         role_error = self.require_role(request, UserAccount.Role.EMPLOYER)
 
-        if role_error:
+        if role_error is not None:
             return role_error
 
         qs = get_employer_applications_queryset(request.user)
 
         return Response(ApplicationListSerializer(qs, many=True).data)
+
+
+@extend_schema(
+    tags=["auth"],
+    summary="Сменить пароль текущего пользователя",
+    description="Проверяет старый пароль, сохраняет новый и оставляет текущую сессию активной.",
+    request=PasswordChangeSerializer,
+    responses={200: LogoutResponseSerializer},
+    operation_id="auth_password_change",
+)
+class PasswordChangeApi(RoleAwareApiView):
+    def put(self, request):
+        auth_error = self.require_authenticated(request)
+
+        if auth_error is not None:
+            return auth_error
+
+        serializer = PasswordChangeSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        update_session_auth_hash(request, request.user)
+
+        auth_logger.info(
+            "Password changed method=%s username=%s result=OK",
+            request.method,
+            request.user.username,
+        )
+
+        return Response({"message": "Пароль изменён."})

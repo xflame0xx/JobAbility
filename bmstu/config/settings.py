@@ -11,11 +11,16 @@ DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver").split(",")
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost,testserver",
+    ).split(",")
     if host.strip()
 ]
 
 INSTALLED_APPS = [
+    "corsheaders",
+    "sslserver",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -31,6 +36,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -40,7 +46,7 @@ MIDDLEWARE = [
     "core.metrics.PrometheusMetricsMiddleware",
 ]
 
-ROOT_URLCONF = "config.Urls"
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -120,7 +126,10 @@ if USE_MINIO:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    MEDIA_URL = os.getenv("MINIO_PUBLIC_MEDIA_URL", "http://127.0.0.1:9000/jobability/")
+    MEDIA_URL = os.getenv(
+        "MINIO_PUBLIC_MEDIA_URL",
+        "http://127.0.0.1:9000/jobability/",
+    )
 
 USE_REDIS_SESSIONS = os.getenv("DJANGO_USE_REDIS_SESSIONS", "False").lower() == "true"
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
@@ -147,6 +156,46 @@ SESSION_COOKIE_NAME = "sessionid"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        (
+            "http://127.0.0.1:3000,"
+            "http://localhost:3000,"
+            "http://127.0.0.1:4173,"
+            "http://localhost:4173,"
+            "https://127.0.0.1:3000,"
+            "https://localhost:3000,"
+            "null,"
+            "file://"
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://[\w.-]+\.github\.io$",
+    r"^tauri://localhost$",
+    r"^http://tauri\.localhost$",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        (
+            "http://127.0.0.1:3000,"
+            "http://localhost:3000,"
+            "https://127.0.0.1:3000,"
+            "https://localhost:3000"
+        ),
+    ).split(",")
+    if origin.strip()
+]
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",

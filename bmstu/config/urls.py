@@ -81,6 +81,7 @@ urlpatterns = [
     path("api/users/register/", api_views.RegisterApi.as_view(), name="api-users-register"),
     path("api/users/login/", api_views.LoginApi.as_view(), name="api-users-login"),
     path("api/users/logout/", api_views.LogoutApi.as_view(), name="api-users-logout"),
+    path("api/users/password/", api_views.PasswordChangeApi.as_view(), name="api-users-password"),
     path("api/users/me/", api_views.CurrentUserApi.as_view(), name="api-users-me"),
     path(
         "frontend/",
