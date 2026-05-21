@@ -30,41 +30,61 @@ export const VacancyFilters = ({
 
   return (
     <form className="search" onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={filters.search}
-        placeholder="Поиск: название / компания / город"
-        autoComplete="off"
-        onChange={(event) => updateField("search", event.target.value)}
-      />
+      <label className="search-field search-field--wide">
+        <span>Поиск</span>
 
-      <input
-        type="number"
-        min="0"
-        value={filters.minPrice}
-        placeholder="Цена от"
-        onChange={(event) => updateField("minPrice", event.target.value)}
-      />
+        <input
+          type="text"
+          value={filters.search}
+          placeholder="Название, компания, город"
+          autoComplete="off"
+          onChange={(event) => updateField("search", event.target.value)}
+        />
+      </label>
 
-      <input
-        type="number"
-        min="0"
-        value={filters.maxPrice}
-        placeholder="Цена до"
-        onChange={(event) => updateField("maxPrice", event.target.value)}
-      />
+      <label className="search-field">
+        <span>Зарплата от</span>
 
-      <input
-        type="date"
-        value={filters.dateFrom}
-        onChange={(event) => updateField("dateFrom", event.target.value)}
-      />
+        <input
+          type="number"
+          min="0"
+          value={filters.minPrice}
+          placeholder="от"
+          onChange={(event) => updateField("minPrice", event.target.value)}
+        />
+      </label>
 
-      <input
-        type="date"
-        value={filters.dateTo}
-        onChange={(event) => updateField("dateTo", event.target.value)}
-      />
+      <label className="search-field">
+        <span>Зарплата до</span>
+
+        <input
+          type="number"
+          min="0"
+          value={filters.maxPrice}
+          placeholder="до"
+          onChange={(event) => updateField("maxPrice", event.target.value)}
+        />
+      </label>
+
+      <label className="search-field">
+        <span>Дата от</span>
+
+        <input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(event) => updateField("dateFrom", event.target.value)}
+        />
+      </label>
+
+      <label className="search-field">
+        <span>Дата до</span>
+
+        <input
+          type="date"
+          value={filters.dateTo}
+          onChange={(event) => updateField("dateTo", event.target.value)}
+        />
+      </label>
 
       <button type="submit" disabled={loading}>
         Найти

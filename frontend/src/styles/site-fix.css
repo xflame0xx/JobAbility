@@ -1,0 +1,713 @@
+:root {
+  --fix-bg: #f4f7ff;
+  --fix-bg-blue: #eef8ff;
+  --fix-text: #0f172a;
+  --fix-muted: #64748b;
+  --fix-muted-dark: #475569;
+  --fix-panel: rgba(255, 255, 255, 0.96);
+  --fix-panel-solid: #ffffff;
+  --fix-soft: #f8fbff;
+  --fix-border: rgba(148, 163, 184, 0.34);
+  --fix-border-soft: rgba(148, 163, 184, 0.2);
+  --fix-primary: #635bff;
+  --fix-primary-dark: #4f46e5;
+  --fix-primary-soft: rgba(99, 91, 255, 0.12);
+  --fix-green: #16a34a;
+  --fix-green-soft: #dcfce7;
+  --fix-red: #dc2626;
+  --fix-red-soft: #fee2e2;
+  --fix-yellow: #ca8a04;
+  --fix-yellow-soft: #fef3c7;
+  --fix-radius: 24px;
+  --fix-radius-lg: 30px;
+  --fix-shadow: 0 18px 55px rgba(15, 23, 42, 0.09);
+  --fix-shadow-sm: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+/* =========================
+   ОБЩАЯ БАЗА
+   ========================= */
+
+html,
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(99, 91, 255, 0.1), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(40, 199, 255, 0.14), transparent 34%),
+    linear-gradient(135deg, var(--fix-bg), var(--fix-bg-blue)) !important;
+  color: var(--fix-text) !important;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.page {
+  width: min(100% - 64px, 1460px) !important;
+  margin: 28px auto 64px !important;
+  color: var(--fix-text) !important;
+}
+
+/* =========================
+   ШАПКА
+   ========================= */
+
+.topbar {
+  width: min(100% - 64px, 1460px) !important;
+  margin: 22px auto 0 !important;
+  padding: 18px 30px !important;
+  border-radius: 28px !important;
+  background: linear-gradient(135deg, #344057, #424c64) !important;
+  box-shadow: 0 18px 55px rgba(15, 23, 42, 0.18) !important;
+}
+
+.brand,
+.brand:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.brand-name {
+  color: #ffffff !important;
+  font-weight: 950 !important;
+}
+
+.brand-sub {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.topnav a {
+  color: rgba(255, 255, 255, 0.86) !important;
+  text-decoration: none !important;
+  border-radius: 13px !important;
+}
+
+.topnav a:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.user-name {
+  color: #ffffff !important;
+  font-weight: 950 !important;
+}
+
+.user-role {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* =========================
+   КНОПКИ
+   ========================= */
+
+button,
+.btn,
+.ja-button,
+.buy-btn,
+input[type="submit"],
+input[type="button"] {
+  min-height: 46px !important;
+  padding: 12px 20px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--fix-primary), var(--fix-primary-dark)) !important;
+  box-shadow: 0 12px 28px rgba(99, 91, 255, 0.22) !important;
+  font-family: inherit !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+button:hover,
+.btn:hover,
+.ja-button:hover,
+.buy-btn:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(99, 91, 255, 0.3) !important;
+}
+
+button[type="button"],
+.search button[type="button"],
+.btn-ghost,
+.ja-button--outline {
+  color: var(--fix-primary-dark) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(99, 91, 255, 0.28) !important;
+  box-shadow: none !important;
+}
+
+button[type="button"]:hover,
+.search button[type="button"]:hover,
+.btn-ghost:hover,
+.ja-button--outline:hover {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--fix-primary), var(--fix-primary-dark)) !important;
+}
+
+/* =========================
+   ФОРМЫ: ФИКС ЧЁРНЫХ INPUT
+   ========================= */
+
+input,
+select,
+textarea,
+.form-control,
+.form-select {
+  min-height: 50px !important;
+  padding: 0 16px !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 14px !important;
+  color: var(--fix-text) !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 650 !important;
+  outline: none !important;
+  -webkit-text-fill-color: var(--fix-text) !important;
+  caret-color: var(--fix-text) !important;
+}
+
+textarea {
+  min-height: 120px !important;
+  padding-top: 14px !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8a96a8 !important;
+  opacity: 1 !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(99, 91, 255, 0.76) !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 5px rgba(99, 91, 255, 0.12) !important;
+}
+
+/* Chrome autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--fix-text) !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* жёстко чиним регистрацию */
+.auth-card input,
+.auth-panel input,
+.login-card input,
+.register-card input,
+.auth-card select,
+.auth-panel select,
+.login-card select,
+.register-card select {
+  color: var(--fix-text) !important;
+  background: #ffffff !important;
+  -webkit-text-fill-color: var(--fix-text) !important;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  width: auto !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  accent-color: var(--fix-primary) !important;
+}
+
+label {
+  color: var(--fix-muted-dark) !important;
+  font-weight: 850 !important;
+}
+
+/* =========================
+   AUTH / РЕГИСТРАЦИЯ / ВХОД
+   ========================= */
+
+.auth-page,
+.auth-layout,
+.auth-wrapper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.75fr) !important;
+  gap: 30px !important;
+  align-items: stretch !important;
+}
+
+.auth-hero {
+  min-height: 520px !important;
+  padding: clamp(34px, 4vw, 54px) !important;
+  border-radius: 30px !important;
+  color: #ffffff !important;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.22), transparent 30%),
+    linear-gradient(135deg, #635bff, #28a7f0) !important;
+  box-shadow: var(--fix-shadow) !important;
+}
+
+.auth-hero h1,
+.auth-hero .page-title {
+  color: #ffffff !important;
+  font-size: clamp(36px, 4vw, 54px) !important;
+  font-weight: 950 !important;
+}
+
+.auth-hero p {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.auth-card,
+.auth-panel,
+.login-card,
+.register-card {
+  padding: clamp(28px, 4vw, 42px) !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 30px !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow) !important;
+}
+
+.auth-card h1,
+.auth-card h2,
+.auth-panel h1,
+.auth-panel h2,
+.login-card h1,
+.login-card h2,
+.register-card h1,
+.register-card h2 {
+  margin: 0 0 26px !important;
+  color: var(--fix-text) !important;
+  font-size: clamp(30px, 3vw, 42px) !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.auth-card form,
+.auth-panel form,
+.login-card form,
+.register-card form {
+  display: grid !important;
+  gap: 18px !important;
+}
+
+.role-group,
+.auth-role-group {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.role-group label,
+.auth-role-group label {
+  min-height: 54px !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  border: 1px solid var(--fix-border-soft) !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+}
+
+/* =========================
+   ЗАГОЛОВКИ
+   ========================= */
+
+.ja-page-section {
+  display: grid !important;
+  gap: 26px !important;
+}
+
+.ja-page-head {
+  max-width: 1050px !important;
+  margin-top: 8px !important;
+}
+
+.page-title,
+.ja-page-head h1 {
+  margin: 0 0 12px !important;
+  color: var(--fix-text) !important;
+  font-size: clamp(34px, 4vw, 54px) !important;
+  line-height: 1.04 !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.ja-page-head p {
+  color: var(--fix-muted) !important;
+  font-size: clamp(16px, 1.8vw, 20px) !important;
+  line-height: 1.6 !important;
+}
+
+.ja-section-label {
+  color: var(--fix-primary-dark) !important;
+}
+
+/* =========================
+   ЗАЯВКИ: ФИЛЬТР И ТАБЛИЦА
+   ========================= */
+
+.applications-page {
+  display: grid !important;
+  gap: 24px !important;
+}
+
+.applications-page .ja-page-head p {
+  color: var(--fix-muted) !important;
+}
+
+/* убираем тёмные фильтры */
+.applications-filter,
+.application-filters,
+.filters,
+.filter-panel,
+.applications-page form {
+  padding: 22px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(170px, 1fr)) auto auto !important;
+  gap: 14px !important;
+  align-items: end !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 26px !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+  color: var(--fix-text) !important;
+}
+
+.applications-filter *,
+.application-filters *,
+.filters *,
+.filter-panel *,
+.applications-page form * {
+  color: var(--fix-text);
+}
+
+.applications-filter label,
+.application-filters label,
+.filters label,
+.filter-panel label {
+  display: grid !important;
+  gap: 8px !important;
+  color: var(--fix-muted-dark) !important;
+}
+
+/* polling-текст скрываем */
+.polling-info,
+.short-polling,
+.update-info,
+.applications-page button + span {
+  display: none !important;
+}
+
+/* таблицы заявок */
+.application-table-wrap,
+.applications-table-wrap,
+.applications-page table {
+  overflow: hidden !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 26px !important;
+  background: #ffffff !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+}
+
+.applications-page table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+.applications-page thead,
+.applications-page tbody,
+.applications-page tr,
+.applications-page th,
+.applications-page td {
+  background: #ffffff !important;
+  color: var(--fix-text) !important;
+  border-color: var(--fix-border-soft) !important;
+}
+
+.applications-page th {
+  padding: 18px 16px !important;
+  color: var(--fix-muted-dark) !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+}
+
+.applications-page td {
+  padding: 16px !important;
+  color: var(--fix-text) !important;
+  font-size: 14px !important;
+}
+
+.applications-page tr:hover td {
+  background: #f8fbff !important;
+}
+
+.applications-page .empty,
+.application-empty,
+.draft-empty {
+  padding: 26px !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 22px !important;
+  color: var(--fix-muted) !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+}
+
+/* статусы */
+.status-badge,
+.badge {
+  border-radius: 999px !important;
+  padding: 7px 12px !important;
+  font-weight: 900 !important;
+}
+
+.status-DRAFT,
+.status-draft {
+  color: var(--fix-primary-dark) !important;
+  background: var(--fix-primary-soft) !important;
+}
+
+.status-FORMED,
+.status-formed {
+  color: var(--fix-yellow) !important;
+  background: var(--fix-yellow-soft) !important;
+}
+
+.status-FINISHED,
+.status-finished,
+.status-COMPLETED,
+.status-completed {
+  color: var(--fix-green) !important;
+  background: var(--fix-green-soft) !important;
+}
+
+.status-REJECTED,
+.status-rejected {
+  color: var(--fix-red) !important;
+  background: var(--fix-red-soft) !important;
+}
+
+/* =========================
+   ОФОРМЛЕНИЕ / ДЕТАЛЬНАЯ ЗАЯВКА
+   ========================= */
+
+.application-page,
+.application-detail-page {
+  display: grid !important;
+  gap: 24px !important;
+}
+
+.application-detail,
+.application-card,
+.application-page section,
+.application-detail-page section {
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 26px !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+  color: var(--fix-text) !important;
+}
+
+.application-page section,
+.application-detail-page section {
+  padding: 24px !important;
+}
+
+.application-page section *,
+.application-detail-page section * {
+  color: inherit;
+}
+
+.application-page h1,
+.application-detail-page h1,
+.application-page h2,
+.application-detail-page h2 {
+  color: var(--fix-text) !important;
+}
+
+/* =========================
+   ЛИЧНЫЙ КАБИНЕТ СОИСКАТЕЛЯ
+   ========================= */
+
+.applicant-page,
+.applicant-cabinet,
+.profile-page,
+.cabinet-page {
+  display: grid !important;
+  gap: 26px !important;
+}
+
+/* если страница сверстана обычными div/form */
+.profile-page > div,
+.cabinet-page > div,
+.applicant-page > div,
+.applicant-cabinet > div {
+  color: var(--fix-text) !important;
+}
+
+/* верхние две карточки */
+.auth-data-card,
+.password-card,
+.cabinet-card,
+.profile-card {
+  padding: 26px !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 26px !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+  color: var(--fix-text) !important;
+}
+
+.auth-data-card h2,
+.password-card h2,
+.cabinet-card h2,
+.profile-card h2 {
+  margin: 0 0 20px !important;
+  color: var(--fix-text) !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+}
+
+/* блок формы анкеты */
+.profile-form,
+.cabinet-form,
+.applicant-form,
+.applicant-page form,
+.cabinet-page form,
+.profile-page form {
+  padding: 26px !important;
+  border: 1px solid var(--fix-border) !important;
+  border-radius: 26px !important;
+  background: var(--fix-panel) !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+  color: var(--fix-text) !important;
+}
+
+.profile-form h2,
+.cabinet-form h2,
+.applicant-form h2 {
+  margin: 0 0 20px !important;
+  color: var(--fix-text) !important;
+  font-size: 30px !important;
+  font-weight: 950 !important;
+}
+
+/* техническую подпись сверху скрываем */
+.applicant-page > p,
+.applicant-cabinet > p,
+.profile-page > p,
+.cabinet-page > p {
+  display: none !important;
+}
+
+/* =========================
+   ALERTS
+   ========================= */
+
+.alert {
+  border: 0 !important;
+  border-radius: 22px !important;
+  box-shadow: var(--fix-shadow-sm) !important;
+}
+
+.alert-success {
+  color: #065f46 !important;
+  background: var(--fix-green-soft) !important;
+}
+
+.alert-danger {
+  color: #7f1d1d !important;
+  background: var(--fix-red-soft) !important;
+}
+
+/* =========================
+   АДАПТИВ
+   ========================= */
+
+@media (max-width: 1180px) {
+  .topbar {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+  }
+
+  .auth-page,
+  .auth-layout,
+  .auth-wrapper {
+    grid-template-columns: 1fr !important;
+  }
+
+  .applications-filter,
+  .application-filters,
+  .filters,
+  .filter-panel,
+  .applications-page form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .page,
+  .topbar {
+    width: min(100% - 24px, 1460px) !important;
+  }
+
+  .topbar {
+    padding: 18px !important;
+  }
+
+  .topnav {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .applications-filter,
+  .application-filters,
+  .filters,
+  .filter-panel,
+  .applications-page form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-card,
+  .auth-panel,
+  .login-card,
+  .register-card,
+  .auth-hero,
+  .profile-form,
+  .cabinet-form,
+  .applicant-form,
+  .applicant-page form,
+  .cabinet-page form,
+  .profile-page form {
+    padding: 22px !important;
+    border-radius: 22px !important;
+  }
+
+  .role-group,
+  .auth-role-group {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,16 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { AppNavbar } from "./AppNavbar";
-import type { CurrentUser } from "../types/auth";
 
-interface AppLayoutProps {
-  user: CurrentUser | null;
-  onLogout: () => Promise<void>;
-}
-
-export const AppLayout = ({ user, onLogout }: AppLayoutProps) => {
+export const AppLayout = () => {
   return (
     <>
-      <AppNavbar user={user} onLogout={onLogout} />
+      <AppNavbar />
 
       <main className="page">
         <Outlet />

@@ -24,6 +24,12 @@ export interface RegisterPayload {
   role: Exclude<UserRole, "moderator">;
 }
 
+export interface PasswordChangePayload {
+  old_password: string;
+  new_password: string;
+  new_password_repeat: string;
+}
+
 export const ROLE_LABELS: Record<UserRole, string> = {
   applicant: "Соискатель",
   employer: "Работодатель",

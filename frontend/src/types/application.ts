@@ -79,6 +79,13 @@ export interface ApplicationFilters {
   status: string;
   dateFrom: string;
   dateTo: string;
+  creator: string;
+}
+
+export interface BackendApplicationFilters {
+  status: string;
+  dateFrom: string;
+  dateTo: string;
 }
 
 export interface ApplicationUpdatePayload {
@@ -109,6 +116,7 @@ export const EMPTY_APPLICATION_FILTERS: ApplicationFilters = {
   status: "",
   dateFrom: "",
   dateTo: "",
+  creator: "",
 };
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {

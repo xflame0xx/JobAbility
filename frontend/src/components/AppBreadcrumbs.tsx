@@ -13,7 +13,7 @@ interface AppBreadcrumbsProps {
 export const AppBreadcrumbs = ({ items }: AppBreadcrumbsProps) => {
   return (
     <div className="breadcrumbs">
-      <Link to={ROUTES.VACANCIES}>Главная</Link>
+      <Link to={ROUTES.HOME}>Главная</Link>
 
       {items.map((item, index) => {
         const isLast = index === items.length - 1;

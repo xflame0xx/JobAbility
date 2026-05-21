@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://127.0.0.1:9003";
+import { getApiBaseUrl } from "./api/apiClient";
 
 export const ROUTES = {
   HOME: "/",
@@ -17,8 +17,26 @@ export const ROUTES = {
   EMPLOYER_RESPONSES: "/cabinet/employer/responses",
   MODERATOR_CABINET: "/cabinet/moderator",
 
-  SWAGGER: `${BACKEND_URL}/swagger/`,
-  ADMIN: `${BACKEND_URL}/admin/`,
+  SWAGGER: "/swagger/",
+  ADMIN: "/admin/",
+};
+
+export const buildVacancyUrl = (id: number | string) => {
+  return `/vacancies/${id}`;
+};
+
+export const buildApplicationUrl = (id: number | string) => {
+  return `/applications/${id}`;
+};
+
+export const getBackendPageUrl = (path: string) => {
+  const backendUrl = getApiBaseUrl();
+
+  if (!backendUrl) {
+    return path;
+  }
+
+  return `${backendUrl}${path}`;
 };
 
 export const ROUTE_LABELS = {

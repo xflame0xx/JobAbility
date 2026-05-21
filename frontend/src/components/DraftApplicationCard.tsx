@@ -1,47 +1,73 @@
 import { Link } from "react-router-dom";
-import type { ApplicationCart } from "../types/application";
+import { buildApplicationUrl, ROUTES } from "../routes";
 import type { CurrentUser } from "../types/auth";
+import type { ApplicationCart } from "../types/application";
 
 interface DraftApplicationCardProps {
   user: CurrentUser | null;
   cart: ApplicationCart | null;
 }
 
-export const DraftApplicationCard = ({ user, cart }: DraftApplicationCardProps) => {
+export const DraftApplicationCard = ({
+  user,
+  cart,
+}: DraftApplicationCardProps) => {
   if (!user) {
     return (
-      <div className="draft-empty">
-        Войдите как соискатель, чтобы добавлять вакансии в заявку
+      <div className="draft-application-card">
+        <div>
+          <h3>Хотите откликнуться?</h3>
+
+          <p>
+            Войдите в аккаунт соискателя, чтобы добавлять вакансии в заявку и
+            отслеживать её статус.
+          </p>
+        </div>
+
+        <Link to={ROUTES.LOGIN} className="ja-button">
+          Войти
+        </Link>
       </div>
     );
   }
 
   if (user.role !== "applicant") {
+    return null;
+  }
+
+  if (!cart || cart.items_count === 0 || cart.application_id === null) {
     return (
-      <div className="draft-empty">
-        Текущая заявка доступна только для роли «Соискатель»
+      <div className="draft-application-card">
+        <div>
+          <h3>Текущая заявка пуста</h3>
+
+          <p>
+            Добавьте подходящие вакансии в заявку, чтобы позже отправить её на
+            рассмотрение.
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (!cart || !cart.application_id) {
-    return <div className="draft-empty">Текущей заявки нет</div>;
-  }
-
   return (
-    <div className="draft-card">
-      <div className="draft-title">Текущая заявка</div>
+    <div className="draft-application-card draft-application-card--active">
+      <div>
+        <h3>Текущая заявка</h3>
 
-      <div className="draft-row">
-        ID: <b>{cart.application_id}</b>
+        <p>
+          В черновике уже есть вакансии. Вы можете открыть заявку, проверить
+          список позиций и продолжить оформление.
+        </p>
       </div>
 
-      <div className="draft-row">
-        Кол-во позиций: <b>{cart.items_count}</b>
+      <div className="draft-application-card__meta">
+        <span>{cart.items_count}</span>
+        <small>позиций</small>
       </div>
 
-      <Link className="draft-link" to={`/applications/${cart.application_id}`}>
-        Открыть
+      <Link to={buildApplicationUrl(cart.application_id)} className="ja-button">
+        Открыть заявку
       </Link>
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, Spinner } from "react-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import { isTauriGuestMode } from "../api/apiClient";
 import { addVacancyToApplication } from "../api/applicationApi";
 import { fetchVacancyById } from "../api/vacancyApi";
 
@@ -21,6 +22,7 @@ interface VacancyDetailPageProps {
 export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const tauriGuestMode = isTauriGuestMode();
 
   const [vacancy, setVacancy] = useState<Vacancy | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
   }, [id]);
 
   const handleAddToApplication = async () => {
-    if (!vacancy) {
+    if (tauriGuestMode || !vacancy) {
       return;
     }
 
@@ -121,6 +123,10 @@ export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
     <>
       <AppBreadcrumbs
         items={[
+          {
+            label: "Вакансии",
+            path: ROUTES.VACANCIES,
+          },
           {
             label: vacancy.title,
           },
@@ -180,14 +186,16 @@ export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
           )}
 
           <div className="buy-row">
-            <button
-              className="buy-btn"
-              type="button"
-              disabled={adding || (!!user && user.role !== "applicant")}
-              onClick={handleAddToApplication}
-            >
-              {adding ? "Добавление..." : "В заявку"}
-            </button>
+            {!tauriGuestMode && (
+              <button
+                className="buy-btn"
+                type="button"
+                disabled={adding || (!!user && user.role !== "applicant")}
+                onClick={handleAddToApplication}
+              >
+                {adding ? "Добавление..." : "В заявку"}
+              </button>
+            )}
 
             <Link to={ROUTES.VACANCIES} className="buy-btn">
               Назад

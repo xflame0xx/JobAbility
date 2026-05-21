@@ -1,127 +1,141 @@
+.vacancies-page,
+.ja-page-section {
+  display: grid;
+  gap: 26px;
+}
+
 .search {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 30px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns:
+    minmax(250px, 1.7fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    minmax(128px, auto)
+    minmax(128px, auto);
+  gap: 14px;
+  align-items: end;
+  border: 1px solid var(--ja-border);
+  border-radius: 28px;
+  background: var(--ja-card);
+  box-shadow: var(--ja-shadow-sm);
 }
 
-.search input {
-  width: 400px;
-  height: 48px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  padding: 0 16px;
-  font-size: 15px;
-  outline: none;
-  background: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+.search-field {
+  display: grid;
+  gap: 8px;
 }
 
-.search button {
-  height: 48px;
-  padding: 0 30px;
-  border: none;
-  border-radius: 8px;
-  background: #6c63ff;
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 15px;
+.search-field span {
+  color: var(--ja-muted-dark);
+  font-size: 13px;
+  font-weight: 900;
 }
 
-.draft-card {
-  background: #fff;
-  border-left: 4px solid #6c63ff;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.draft-card,
+.draft-application-card {
+  margin: 4px 0;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 20px;
+  align-items: center;
+  border: 1px solid var(--ja-border);
+  border-radius: 26px;
+  background: var(--ja-card);
+  box-shadow: var(--ja-shadow-sm);
+  color: var(--ja-text);
 }
 
-.draft-title {
-  font-weight: 700;
-  font-size: 18px;
-  margin-bottom: 8px;
+.draft-title,
+.draft-application-card h3 {
+  margin: 0 0 8px;
+  color: var(--ja-text);
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.035em;
 }
 
-.draft-row {
-  color: #555;
-  margin-bottom: 4px;
-}
-
-.draft-link {
-  display: inline-block;
-  margin-top: 12px;
-  color: #6c63ff;
-  font-weight: 600;
-  text-decoration: none;
+.draft-row,
+.draft-application-card p {
+  margin: 0;
+  color: var(--ja-muted);
+  line-height: 1.55;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 30px;
 }
 
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
+.ja-vacancy-card {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  border: 1px solid var(--ja-border);
+  border-radius: 30px;
+  background: var(--ja-card);
+  box-shadow: var(--ja-shadow-sm);
 }
 
-.card:hover {
+.ja-vacancy-card:hover {
   transform: translateY(-4px);
+  box-shadow: var(--ja-shadow);
 }
 
-.card-link {
+.ja-vacancy-card__image-box {
+  height: 220px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #f1f5f9;
+}
+
+.ja-vacancy-card__image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ja-vacancy-card__body {
+  display: grid;
+  gap: 14px;
+}
+
+.ja-vacancy-card__title {
+  color: var(--ja-text);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 950;
   text-decoration: none;
-  color: #111;
-  margin-bottom: 15px;
 }
 
-.img-box {
-  background: #f8f9fa;
-  border-radius: 8px;
-  height: 160px;
+.ja-vacancy-card__title:hover {
+  color: var(--ja-primary-dark);
+}
+
+.ja-vacancy-card__meta {
+  padding-bottom: 14px;
+  color: var(--ja-muted);
+  border-bottom: 1px solid var(--ja-border-soft);
+}
+
+.ja-vacancy-card__footer {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin-bottom: 16px;
-  border: 1px solid #eee;
-}
-
-.img-box img {
-  max-width: 90%;
-  max-height: 90%;
-  object-fit: contain;
-}
-
-.card-title {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.card-bottom {
-  display: flex;
   justify-content: space-between;
+  gap: 14px;
+}
+
+.ja-vacancy-card__salary {
+  min-height: 42px;
+  padding: 9px 14px;
+  display: inline-flex;
   align-items: center;
-  margin-top: auto;
-  padding-top: 15px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.price {
-  color: #222;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.meta {
-  margin-top: 10px;
-  color: #888;
-  font-size: 13px;
+  border-radius: 14px;
+  color: var(--ja-primary-dark);
+  background: var(--ja-primary-soft);
+  font-weight: 950;
 }

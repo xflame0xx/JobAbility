@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { Alert, Spinner } from "react-bootstrap";
 
-import {
-  EMPTY_VACANCY_FILTERS,
-  type Vacancy,
-  type VacancyFilters as VacancyFiltersType,
-} from "../types/vacancy";
-
+import type { Vacancy } from "../types/vacancy";
 import type { ApplicationCart } from "../types/application";
-import type { CurrentUser } from "../types/auth";
 
+import { isTauriGuestMode } from "../api/apiClient";
 import { fetchVacancies } from "../api/vacancyApi";
 import {
   addVacancyToApplication,
@@ -20,16 +15,23 @@ import { DraftApplicationCard } from "../components/DraftApplicationCard";
 import { VacancyCard } from "../components/VacancyCard";
 import { VacancyFilters } from "../components/VacancyFilters";
 
-interface VacanciesPageProps {
-  user: CurrentUser | null;
-}
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  applyVacancyFilters,
+  resetVacancyFilters,
+  setVacancyFilters,
+} from "../store/vacanciesSlice";
 
-export const VacanciesPage = ({ user }: VacanciesPageProps) => {
-  const [filters, setFilters] =
-    useState<VacancyFiltersType>(EMPTY_VACANCY_FILTERS);
+export const VacanciesPage = () => {
+  const dispatch = useAppDispatch();
 
-  const [appliedFilters, setAppliedFilters] =
-    useState<VacancyFiltersType>(EMPTY_VACANCY_FILTERS);
+  const user = useAppSelector((state) => state.auth.user);
+  const filters = useAppSelector((state) => state.vacancies.filters);
+  const appliedFilters = useAppSelector(
+    (state) => state.vacancies.appliedFilters,
+  );
+
+  const tauriGuestMode = isTauriGuestMode();
 
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [cart, setCart] = useState<ApplicationCart | null>(null);
@@ -78,7 +80,7 @@ export const VacanciesPage = ({ user }: VacanciesPageProps) => {
     let ignore = false;
 
     const loadCart = async () => {
-      if (!user || user.role !== "applicant") {
+      if (tauriGuestMode || !user || user.role !== "applicant") {
         setCart(null);
         return;
       }
@@ -103,18 +105,21 @@ export const VacanciesPage = ({ user }: VacanciesPageProps) => {
     return () => {
       ignore = true;
     };
-  }, [user]);
+  }, [user, tauriGuestMode]);
 
   const handleSubmitFilters = () => {
-    setAppliedFilters(filters);
+    dispatch(applyVacancyFilters());
   };
 
   const handleResetFilters = () => {
-    setFilters(EMPTY_VACANCY_FILTERS);
-    setAppliedFilters(EMPTY_VACANCY_FILTERS);
+    dispatch(resetVacancyFilters());
   };
 
   const handleAddToApplication = async (vacancyId: number) => {
+    if (tauriGuestMode) {
+      return;
+    }
+
     try {
       setAddingVacancyId(vacancyId);
       setError("");
@@ -130,7 +135,9 @@ export const VacanciesPage = ({ user }: VacanciesPageProps) => {
       setSuccess("Вакансия добавлена в текущую заявку");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Не удалось добавить вакансию в заявку",
+        err instanceof Error
+          ? err.message
+          : "Не удалось добавить вакансию в заявку",
       );
     } finally {
       setAddingVacancyId(null);
@@ -138,22 +145,32 @@ export const VacanciesPage = ({ user }: VacanciesPageProps) => {
   };
 
   return (
-    <>
-      <h1 className="page-title">Вакансии для соискателей</h1>
+    <section className="ja-page-section">
+      <div className="ja-page-head">
+        <span className="ja-section-label">Каталог вакансий</span>
+
+        <h1 className="page-title">Вакансии для соискателей</h1>
+
+        <p>
+          Значения фильтра хранятся в Redux Toolkit. Поэтому после перехода на
+          главную страницу и возврата назад введённый фильтр не сбрасывается.
+        </p>
+      </div>
 
       <VacancyFilters
         filters={filters}
         loading={loading}
-        onChange={setFilters}
+        onChange={(nextFilters) => dispatch(setVacancyFilters(nextFilters))}
         onSubmit={handleSubmitFilters}
         onReset={handleResetFilters}
       />
 
-      {cartLoading ? (
-        <div className="draft-empty">Загрузка текущей заявки...</div>
-      ) : (
-        <DraftApplicationCard user={user} cart={cart} />
-      )}
+      {!tauriGuestMode &&
+        (cartLoading ? (
+          <div className="draft-empty">Загрузка текущей заявки...</div>
+        ) : (
+          <DraftApplicationCard user={user} cart={cart} />
+        ))}
 
       {error && (
         <Alert variant="danger" style={{ marginBottom: 20 }}>
@@ -190,6 +207,6 @@ export const VacanciesPage = ({ user }: VacanciesPageProps) => {
       {!loading && vacancies.length === 0 && (
         <div className="empty">Ничего не найдено.</div>
       )}
-    </>
+    </section>
   );
 };

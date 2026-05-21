@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Spinner } from "react-bootstrap";
-import { registerUser } from "../api/authApi";
 import { ROUTES } from "../routes";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { registerThunk } from "../store/authSlice";
 import type { RegisterPayload, UserRole } from "../types/auth";
 
 export const RegisterPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const status = useAppSelector((state) => state.auth.status);
+  const authError = useAppSelector((state) => state.auth.error);
 
   const [form, setForm] = useState<RegisterPayload>({
     first_name: "",
@@ -17,39 +21,22 @@ export const RegisterPage = () => {
     role: "applicant",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
   const updateField = (field: keyof RegisterPayload, value: string) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setForm((current) => ({ ...current, [field]: value }));
   };
 
   const updateRole = (role: Exclude<UserRole, "moderator">) => {
-    setForm((current) => ({
-      ...current,
-      role,
-    }));
+    setForm((current) => ({ ...current, role }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
-      setLoading(true);
-      setError("");
-
-      await registerUser(form);
-
-      navigate(ROUTES.LOGIN, {
-        replace: true,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка регистрации");
-    } finally {
-      setLoading(false);
+      await dispatch(registerThunk(form)).unwrap();
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch {
+      // Ошибка отображается из Redux.
     }
   };
 
@@ -57,19 +44,16 @@ export const RegisterPage = () => {
     <section className="auth-layout auth-layout--single">
       <div className="auth-hero">
         <span className="eyebrow">Регистрация</span>
-
         <h1>Создание аккаунта</h1>
-
         <p>
-          После регистрации автоматический вход не выполняется. Для продолжения
-          нужно вручную перейти на страницу входа и авторизоваться.
+          Регистрация выполняется через thunk. После неё пользователь вручную
+          переходит на вход, чтобы отдельно показать авторизацию.
         </p>
       </div>
 
       <form className="auth-card" onSubmit={handleSubmit}>
         <h2>Новый аккаунт</h2>
-
-        {error && <Alert variant="danger">{error}</Alert>}
+        {authError && <Alert variant="danger">{authError}</Alert>}
 
         <div className="field-row">
           <div className="field">
@@ -79,7 +63,6 @@ export const RegisterPage = () => {
               onChange={(event) => updateField("first_name", event.target.value)}
             />
           </div>
-
           <div className="field">
             <label>Фамилия</label>
             <input
@@ -122,19 +105,7 @@ export const RegisterPage = () => {
 
         <div className="field">
           <label>Тип аккаунта</label>
-
           <div className="choice-grid choice-grid--two">
-            <label className="choice-card">
-              <input
-                type="radio"
-                name="role"
-                value="employer"
-                checked={form.role === "employer"}
-                onChange={() => updateRole("employer")}
-              />
-              <span>Работодатель</span>
-            </label>
-
             <label className="choice-card">
               <input
                 type="radio"
@@ -145,11 +116,22 @@ export const RegisterPage = () => {
               />
               <span>Соискатель</span>
             </label>
+
+            <label className="choice-card">
+              <input
+                type="radio"
+                name="role"
+                value="employer"
+                checked={form.role === "employer"}
+                onChange={() => updateRole("employer")}
+              />
+              <span>Работодатель</span>
+            </label>
           </div>
         </div>
 
-        <button className="btn btn-block" type="submit" disabled={loading}>
-          {loading ? <Spinner size="sm" animation="border" /> : "Создать аккаунт"}
+        <button className="btn btn-block" type="submit" disabled={status === "loading"}>
+          {status === "loading" ? <Spinner size="sm" animation="border" /> : "Создать аккаунт"}
         </button>
       </form>
     </section>

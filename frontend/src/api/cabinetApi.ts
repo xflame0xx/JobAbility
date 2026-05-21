@@ -1,5 +1,6 @@
 import { apiRequest, isMockMode } from "./apiClient";
 import { fetchApplications } from "./applicationApi";
+import { clearVacanciesClientCache } from "./vacancyApi";
 
 import { MOCK_VACANCIES } from "../data/mockVacancies";
 import {
@@ -132,11 +133,12 @@ export const fetchApplicantCabinet = async (
 
   const [profile, applications] = await Promise.all([
     apiRequest<ApplicantProfile>("/api/users/profile/"),
-    fetchApplications({
+   fetchApplications({
       status: "",
       dateFrom: "",
       dateTo: "",
-    }),
+      creator: "",
+     }),
   ]);
 
   const draft = applications.find(
@@ -218,13 +220,19 @@ export const createEmployerVacancy = async (
     mockEmployerVacancies = [newVacancy, ...mockEmployerVacancies];
     mockPendingVacancies = [newVacancy, ...mockPendingVacancies];
 
+    clearVacanciesClientCache();
+
     return newVacancy;
   }
 
-  return apiRequest<Vacancy>("/api/vacancies/", {
+  const created = await apiRequest<Vacancy>("/api/vacancies/", {
     method: "POST",
     body: buildFormData(payload),
   });
+
+  clearVacanciesClientCache();
+
+  return created;
 };
 
 export const fetchEmployerResponses =
@@ -263,11 +271,12 @@ export const fetchModeratorCabinet =
 
     const [pendingVacancies, formedApplications] = await Promise.all([
       apiRequest<Vacancy[]>("/api/vacancies/pending/"),
-      fetchApplications({
+     fetchApplications({
         status: "FORMED",
         dateFrom: "",
         dateTo: "",
-      }),
+        creator: "",
+        }),
     ]);
 
     return {
@@ -312,14 +321,20 @@ export const moderateVacancy = async (
       item.id === vacancyId ? updatedVacancy : item,
     );
 
+    clearVacanciesClientCache();
+
     return updatedVacancy;
   }
 
-  return apiRequest<Vacancy>(`/api/vacancies/${vacancyId}/moderate/`, {
+  const updated = await apiRequest<Vacancy>(`/api/vacancies/${vacancyId}/moderate/`, {
     method: "PUT",
     json: {
       action,
       moderation_note: moderationNote,
     },
   });
+
+  clearVacanciesClientCache();
+
+  return updated;
 };

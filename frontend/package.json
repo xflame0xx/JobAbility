@@ -4,22 +4,35 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode backend",
     "dev:mock": "vite --mode mock",
     "dev:backend": "vite --mode backend",
+    "dev:https": "vite --mode backend --host 0.0.0.0",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build:mock": "tsc -b && vite build --mode mock",
+    "build:backend": "tsc -b && vite build --mode backend",
+    "build:pages": "tsc -b && vite build --mode pages && node scripts/copy-404.js",
+    "build:tauri": "tsc -b && vite build --mode tauri",
+    "preview": "vite preview --host 0.0.0.0",
+    "preview:pages": "vite preview --host 0.0.0.0 --port 4173",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.0.0",
+    "@reduxjs/toolkit": "^2.11.0",
+    "axios": "^1.16.1",
     "bootstrap": "^5.3.8",
     "react": "^19.2.5",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.5",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "^2.9.0",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -30,6 +43,7 @@
     "globals": "^17.5.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

@@ -51,20 +51,11 @@ export const getCurrentUser = async (): Promise<CurrentUser | null> => {
     return mockUser;
   }
 
-  const response = await fetch("/api/users/me/", {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (response.status === 401 || response.status === 403) {
+  try {
+    return await apiRequest<CurrentUser>("/api/users/me/");
+  } catch {
     return null;
   }
-
-  if (!response.ok) {
-    return null;
-  }
-
-  return response.json() as Promise<CurrentUser>;
 };
 
 export const loginUser = async (

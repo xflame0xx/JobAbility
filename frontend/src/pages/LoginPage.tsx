@@ -1,73 +1,50 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Spinner } from "react-bootstrap";
-import { loginUser } from "../api/authApi";
 import { ROUTES } from "../routes";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { loginThunk } from "../store/authSlice";
 import type { CurrentUser, LoginPayload } from "../types/auth";
-
-interface LoginPageProps {
-  onLogin: (user: CurrentUser) => void;
-}
 
 const DEMO_MODERATOR = {
   username: "Ilya Snytkin",
   password: "Ilya123",
 };
 
-export const LoginPage = ({ onLogin }: LoginPageProps) => {
+const redirectByRole = (navigate: ReturnType<typeof useNavigate>, user: CurrentUser) => {
+  if (user.role === "applicant") {
+    navigate(ROUTES.APPLICANT_CABINET);
+    return;
+  }
+
+  if (user.role === "employer") {
+    navigate(ROUTES.EMPLOYER_CABINET);
+    return;
+  }
+
+  navigate(ROUTES.MODERATOR_CABINET);
+};
+
+export const LoginPage = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const status = useAppSelector((state) => state.auth.status);
+  const authError = useAppSelector((state) => state.auth.error);
 
-  const [form, setForm] = useState<LoginPayload>({
-    username: "",
-    password: "",
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [form, setForm] = useState<LoginPayload>({ username: "", password: "" });
 
   const updateField = (field: keyof LoginPayload, value: string) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const fillModerator = () => {
-    setForm({
-      username: DEMO_MODERATOR.username,
-      password: DEMO_MODERATOR.password,
-    });
-  };
-
-  const redirectByRole = (user: CurrentUser) => {
-    if (user.role === "applicant") {
-      navigate(ROUTES.APPLICANT_CABINET);
-      return;
-    }
-
-    if (user.role === "employer") {
-      navigate(ROUTES.EMPLOYER_CABINET);
-      return;
-    }
-
-    navigate(ROUTES.MODERATOR_CABINET);
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
-      setLoading(true);
-      setError("");
-
-      const user = await loginUser(form);
-
-      onLogin(user);
-      redirectByRole(user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка входа");
-    } finally {
-      setLoading(false);
+      const user = await dispatch(loginThunk(form)).unwrap();
+      redirectByRole(navigate, user);
+    } catch {
+      // Ошибка уже сохранена в Redux.
     }
   };
 
@@ -75,46 +52,36 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     <section className="ja-auth-screen">
       <div className="ja-auth-info">
         <span className="ja-section-label">Авторизация</span>
-
         <h1>Вход в систему</h1>
-
         <p>
-          Введите логин и пароль. Роль пользователя определяется автоматически
-          после успешной авторизации на backend.
+          После успешного входа backend создаёт session-cookie. Redux хранит только
+          состояние интерфейса: текущего пользователя, загрузку и ошибку.
         </p>
 
         <div className="ja-demo-box">
-          <div className="ja-demo-box__title">Быстрое заполнение</div>
-
+          <div className="ja-demo-box__title">Быстрое заполнение модератора</div>
           <div className="ja-demo-box__row">
             <span>Логин</span>
             <strong>{DEMO_MODERATOR.username}</strong>
           </div>
-
           <div className="ja-demo-box__row">
             <span>Пароль</span>
             <strong>{DEMO_MODERATOR.password}</strong>
           </div>
-
           <button
             type="button"
             className="ja-button ja-button--light"
-            onClick={fillModerator}
+            onClick={() => setForm(DEMO_MODERATOR)}
           >
-            Подставить Илью Сныткина
+            Подставить данные
           </button>
-        </div>
-
-        <div className="ja-hint-box">
-          В mock-режиме также можно использовать логины:{" "}
-          <b>applicant</b>, <b>employer</b>, <b>moderator</b>.
         </div>
       </div>
 
       <form className="ja-auth-form" onSubmit={handleSubmit}>
         <h2>Войти</h2>
 
-        {error && <Alert variant="danger">{error}</Alert>}
+        {authError && <Alert variant="danger">{authError}</Alert>}
 
         <label className="ja-form-field">
           <span>Логин</span>
@@ -137,12 +104,8 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           />
         </label>
 
-        <button
-          className="ja-button ja-button--wide"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? <Spinner size="sm" animation="border" /> : "Войти"}
+        <button className="ja-button ja-button--wide" type="submit" disabled={status === "loading"}>
+          {status === "loading" ? <Spinner size="sm" animation="border" /> : "Войти"}
         </button>
       </form>
     </section>

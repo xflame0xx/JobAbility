@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { getCurrentUser, logoutUser } from "./api/authApi";
+import { isTauriGuestMode } from "./api/apiClient";
 
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
+import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { VacanciesPage } from "./pages/VacanciesPage";
@@ -18,124 +19,124 @@ import { EmployerResponsesPage } from "./pages/EmployerResponsesPage";
 import { ModeratorCabinetPage } from "./pages/ModeratorCabinetPage";
 
 import { ROUTES } from "./routes";
-import type { CurrentUser } from "./types/auth";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { loadCurrentUserThunk } from "./store/authSlice";
+
+const getRouterBasename = () => {
+  const base = import.meta.env.BASE_URL || "/";
+
+  if (base === "./" || base === "") {
+    return "/";
+  }
+
+  if (base !== "/" && base.endsWith("/")) {
+    return base.slice(0, -1);
+  }
+
+  return base;
+};
 
 const App = () => {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [userLoading, setUserLoading] = useState(true);
+  const dispatch = useAppDispatch();
+
+  const user = useAppSelector((state) => state.auth.user);
+  const initialized = useAppSelector((state) => state.auth.initialized);
+
+  const tauriGuestMode = isTauriGuestMode();
 
   useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = await getCurrentUser();
+    if (tauriGuestMode) {
+      return;
+    }
 
-      setUser(currentUser);
-      setUserLoading(false);
-    };
+    dispatch(loadCurrentUserThunk());
+  }, [dispatch, tauriGuestMode]);
 
-    loadUser();
-  }, []);
-
-  const handleLogout = async () => {
-    await logoutUser();
-    setUser(null);
-  };
-
-  if (userLoading) {
+  if (!tauriGuestMode && !initialized) {
     return <main className="page">Загрузка пользователя...</main>;
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={getRouterBasename()}>
       <Routes>
-        <Route element={<AppLayout user={user} onLogout={handleLogout} />}>
-          <Route
-            path={ROUTES.HOME}
-            element={<Navigate to={ROUTES.VACANCIES} replace />}
-          />
+        <Route element={<AppLayout />}>
+          <Route path={ROUTES.HOME} element={<HomePage />} />
 
           <Route
             path="/static/frontend/"
             element={<Navigate to={ROUTES.VACANCIES} replace />}
           />
 
-          <Route
-            path={ROUTES.LOGIN}
-            element={<LoginPage onLogin={setUser} />}
-          />
-
-          <Route
-            path={ROUTES.REGISTER}
-            element={<RegisterPage />}
-          />
-
-          <Route
-            path={ROUTES.VACANCIES}
-            element={<VacanciesPage user={user} />}
-          />
+          <Route path={ROUTES.VACANCIES} element={<VacanciesPage />} />
 
           <Route
             path={ROUTES.VACANCY_DETAIL}
             element={<VacancyDetailPage user={user} />}
           />
 
-          <Route
-            path={ROUTES.APPLICATIONS}
-            element={
-              <ProtectedRoute user={user} roles={["applicant", "moderator"]}>
-                <ApplicationsPage user={user} />
-              </ProtectedRoute>
-            }
-          />
+          {!tauriGuestMode && (
+            <>
+              <Route path={ROUTES.LOGIN} element={<LoginPage />} />
 
-          <Route
-            path={ROUTES.APPLICATION_DETAIL}
-            element={
-              <ProtectedRoute user={user} roles={["applicant", "moderator"]}>
-                <ApplicationDetailPage user={user} />
-              </ProtectedRoute>
-            }
-          />
+              <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
-          <Route
-            path={ROUTES.APPLICANT_CABINET}
-            element={
-              <ProtectedRoute user={user} roles={["applicant"]}>
-                <ApplicantCabinetPage user={user!} />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path={ROUTES.APPLICATIONS}
+                element={
+                  <ProtectedRoute roles={["applicant", "moderator"]}>
+                    <ApplicationsPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path={ROUTES.EMPLOYER_CABINET}
-            element={
-              <ProtectedRoute user={user} roles={["employer"]}>
-                <EmployerCabinetPage user={user!} />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path={ROUTES.APPLICATION_DETAIL}
+                element={
+                  <ProtectedRoute roles={["applicant", "moderator"]}>
+                    <ApplicationDetailPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path={ROUTES.EMPLOYER_RESPONSES}
-            element={
-              <ProtectedRoute user={user} roles={["employer"]}>
-                <EmployerResponsesPage user={user!} />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path={ROUTES.APPLICANT_CABINET}
+                element={
+                  <ProtectedRoute roles={["applicant"]}>
+                    <ApplicantCabinetPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path={ROUTES.MODERATOR_CABINET}
-            element={
-              <ProtectedRoute user={user} roles={["moderator"]}>
-                <ModeratorCabinetPage user={user!} />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path={ROUTES.EMPLOYER_CABINET}
+                element={
+                  <ProtectedRoute roles={["employer"]}>
+                    <EmployerCabinetPage user={user!} />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="*"
-            element={<Navigate to={ROUTES.VACANCIES} replace />}
-          />
+              <Route
+                path={ROUTES.EMPLOYER_RESPONSES}
+                element={
+                  <ProtectedRoute roles={["employer"]}>
+                    <EmployerResponsesPage user={user!} />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path={ROUTES.MODERATOR_CABINET}
+                element={
+                  <ProtectedRoute roles={["moderator"]}>
+                    <ModeratorCabinetPage user={user!} />
+                  </ProtectedRoute>
+                }
+              />
+            </>
+          )}
+
+          <Route path="*" element={<Navigate to={ROUTES.VACANCIES} replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

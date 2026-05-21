@@ -1,4 +1,4 @@
-import { apiRequest, isMockMode } from "./apiClient";
+import { apiRequest, isMockMode, toBackendUrl } from "./apiClient";
 import { MOCK_VACANCIES } from "../data/mockVacancies";
 import type { Vacancy, VacancyFilters } from "../types/vacancy";
 
@@ -15,8 +15,8 @@ const normalizeVacancy = (vacancy: Vacancy): Vacancy => {
     description: vacancy.description || "",
     schedule: vacancy.schedule || "",
     disability_support: vacancy.disability_support || "",
-    image_url: vacancy.image_url || null,
-    video_url: vacancy.video_url || null,
+    image_url: toBackendUrl(vacancy.image_url),
+    video_url: toBackendUrl(vacancy.video_url),
     published_at: vacancy.published_at || null,
   };
 };
@@ -168,4 +168,15 @@ export const fetchVacancyById = async (id: string): Promise<Vacancy> => {
 
     return normalizeVacancy(vacancy);
   }
+};
+
+export const clearVacanciesClientCache = () => {
+  /*
+    Раньше cabinetApi очищал клиентский кэш вакансий после изменения данных
+    работодателем или модератором.
+
+    Сейчас список вакансий каждый раз загружается заново через fetchVacancies,
+    поэтому отдельный кэш не используется. Функция оставлена как публичный
+    API-мост, чтобы не ломать cabinetApi и старую логику проекта.
+  */
 };

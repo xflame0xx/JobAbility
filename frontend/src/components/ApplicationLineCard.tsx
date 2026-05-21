@@ -1,21 +1,31 @@
 import { useEffect, useState } from "react";
+
+import { SafeVacancyImage } from "./SafeVacancyImage";
 import type { ApplicationLine } from "../types/application";
 
 interface ApplicationLineCardProps {
   line: ApplicationLine;
   editable: boolean;
   saving: boolean;
-  onSave: (line: ApplicationLine, qty: number, comment: string) => Promise<void>;
-  onDelete: (line: ApplicationLine) => Promise<void>;
+  onSaveQtyComment: (
+    line: ApplicationLine,
+    qty: number,
+    comment: string,
+  ) => void;
+  onToggleMain: (line: ApplicationLine) => void;
+  onMoveUp: (line: ApplicationLine) => void;
+  onMoveDown: (line: ApplicationLine) => void;
+  onDelete: (line: ApplicationLine) => void;
 }
-
-const FALLBACK_IMAGE = "/fallback.svg";
 
 export const ApplicationLineCard = ({
   line,
   editable,
   saving,
-  onSave,
+  onSaveQtyComment,
+  onToggleMain,
+  onMoveUp,
+  onMoveDown,
   onDelete,
 }: ApplicationLineCardProps) => {
   const [qty, setQty] = useState(line.qty);
@@ -26,38 +36,36 @@ export const ApplicationLineCard = ({
     setComment(line.comment || "");
   }, [line.id, line.qty, line.comment]);
 
-  const lineTotal = qty * line.vacancy.salary;
+  const lineSalary =
+    line.line_salary_total ?? line.qty * line.vacancy.salary;
 
   return (
-    <article className="ja-application-line-card">
-      <div className="ja-application-line-card__image">
-        <img
-          src={line.vacancy.image_url || FALLBACK_IMAGE}
-          alt={line.vacancy.title}
-          onError={(event) => {
-            event.currentTarget.src = FALLBACK_IMAGE;
-          }}
-        />
+    <article className="application-line-card">
+      <div className="application-line-image">
+        <SafeVacancyImage src={line.vacancy.image_url} alt={line.vacancy.title} />
       </div>
 
-      <div className="ja-application-line-card__content">
+      <div className="application-line-info">
         <h3>{line.vacancy.title}</h3>
 
-        <div className="ja-application-line-card__meta">
+        <p className="application-line-meta">
           {line.vacancy.company} • {line.vacancy.city}
+        </p>
+
+        <div className="application-line-tags">
+          <span>З/п: {line.vacancy.salary.toLocaleString("ru-RU")} ₽</span>
+          <span>Количество: {line.qty}</span>
+          <span>Порядок: {line.order_index}</span>
+          <span>{line.is_main ? "Основная" : "Обычная"}</span>
         </div>
 
-        <div className="ja-application-line-card__salary">
-          Зарплата: <b>{line.vacancy.salary.toLocaleString("ru-RU")} ₽</b>
-        </div>
-
-        <div className="ja-application-line-card__salary">
-          Сумма строки: <b>{lineTotal.toLocaleString("ru-RU")} ₽</b>
-        </div>
+        <p className="application-line-total">
+          Сумма строки: <strong>{lineSalary.toLocaleString("ru-RU")} ₽</strong>
+        </p>
       </div>
 
-      <div className="ja-application-line-card__controls">
-        <label className="ja-form-field">
+      <div className="application-line-editor">
+        <label className="application-field">
           <span>Количество</span>
           <input
             type="number"
@@ -70,35 +78,61 @@ export const ApplicationLineCard = ({
           />
         </label>
 
-        <label className="ja-form-field">
-          <span>Комментарий</span>
+        <label className="application-field">
+          <span>Комментарий к вакансии</span>
           <textarea
-            rows={4}
+            rows={3}
             disabled={!editable || saving}
-            placeholder="Комментарий к вакансии"
             value={comment}
             onChange={(event) => setComment(event.target.value)}
           />
         </label>
 
         {editable && (
-          <div className="ja-application-line-card__actions">
+          <div className="application-line-actions">
             <button
-              className="ja-button"
+              className="application-btn"
               type="button"
               disabled={saving}
-              onClick={() => onSave(line, qty, comment)}
+              onClick={() => onSaveQtyComment(line, qty, comment)}
             >
-              Сохранить
+              1. Изменить количество/комментарий
             </button>
 
             <button
-              className="ja-button ja-button--danger"
+              className="application-btn application-btn--outline"
+              type="button"
+              disabled={saving}
+              onClick={() => onToggleMain(line)}
+            >
+              2. Изменить m-m: основная
+            </button>
+
+            <button
+              className="application-btn application-btn--outline"
+              type="button"
+              disabled={saving}
+              onClick={() => onMoveUp(line)}
+            >
+              3. Изменить m-m: выше
+            </button>
+
+            <button
+              className="application-btn application-btn--outline"
+              type="button"
+              disabled={saving}
+              onClick={() => onMoveDown(line)}
+            >
+              4. Изменить m-m: ниже
+            </button>
+
+            <button
+              className="application-btn application-btn--danger"
               type="button"
               disabled={saving}
               onClick={() => onDelete(line)}
             >
-              Удалить
+              5. Удалить m-m строку
             </button>
           </div>
         )}

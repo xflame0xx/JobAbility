@@ -1,44 +1,70 @@
-import { Card, Col, Container, Row } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { AppBreadcrumbs } from "../components/AppBreadcrumbs";
 import { ROUTES } from "../routes";
 
 export const HomePage = () => {
   return (
-    <Container className="page-container">
+    <section className="home-page">
       <AppBreadcrumbs items={[]} />
 
-      <Row className="align-items-center">
-        <Col lg={7}>
-          <h1 className="display-5 fw-bold">JobAbility</h1>
+      <div className="home-hero home-hero--clean">
+        <div className="home-hero__content">
+          <span className="ja-section-label">Платформа трудоустройства</span>
 
-          <p className="lead">
-            SPA-приложение для просмотра вакансий и услуг трудоустройства.
-            Данные можно получать из mock-объектов или из Django REST API.
+          <h1>JobAbility</h1>
+
+          <p>
+            Сервис помогает соискателям находить подходящие вакансии, а
+            работодателям — размещать предложения и получать отклики.
+            Интерфейс адаптирован для компьютера, планшета и телефона.
           </p>
 
-          <Link to={ROUTES.VACANCIES} className="btn btn-primary btn-lg">
-            Смотреть вакансии
-          </Link>
-        </Col>
+          <div className="home-hero__actions">
+            <Link to={ROUTES.VACANCIES} className="ja-button">
+              Перейти к вакансиям
+            </Link>
+          </div>
+        </div>
 
-        <Col lg={5} className="mt-4 mt-lg-0">
-          <Card>
-            <Card.Body>
-              <Card.Title>Что реализовано</Card.Title>
+        <aside className="home-hero__card home-hero__card--clean">
+          <h2>Возможности сервиса</h2>
 
-              <ul className="mb-0">
-                <li>React SPA на TypeScript.</li>
-                <li>Три страницы приложения.</li>
-                <li>Mock-режим без Django.</li>
-                <li>Backend-режим через Vite proxy.</li>
-                <li>Фильтры по названию, цене и дате.</li>
-                <li>Изображение по умолчанию.</li>
-              </ul>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+          <div className="feature-list">
+            <div className="feature-item">
+              <span>01</span>
+              <div>
+                <h3>Каталог вакансий</h3>
+                <p>
+                  Просмотр актуальных вакансий с фильтрацией по названию,
+                  зарплате и дате публикации.
+                </p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <span>02</span>
+              <div>
+                <h3>Удобный отклик</h3>
+                <p>
+                  Соискатель может добавлять вакансии в заявку и отслеживать
+                  дальнейший статус обращения.
+                </p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <span>03</span>
+              <div>
+                <h3>Адаптивный интерфейс</h3>
+                <p>
+                  Страницы корректно отображаются на телефоне, планшете и
+                  широком экране компьютера.
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
   );
 };

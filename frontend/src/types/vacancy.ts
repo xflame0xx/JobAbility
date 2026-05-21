@@ -56,3 +56,10 @@ export interface VacancyCreatePayload {
   image: File | null;
   video: File | null;
 }
+
+export type VacancyDataSource = "backend" | "mock";
+
+export interface VacancyFetchResult {
+  items: Vacancy[];
+  source: VacancyDataSource;
+}

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 
+import { isTauriGuestMode } from "../api/apiClient";
 import { FALLBACK_IMAGE, setFallbackImage } from "../data/imageFallback";
 
 import type { CurrentUser } from "../types/auth";
@@ -19,8 +20,13 @@ export const VacancyCard = ({
   onAddToApplication,
 }: VacancyCardProps) => {
   const navigate = useNavigate();
+  const tauriGuestMode = isTauriGuestMode();
 
   const handleAddClick = async () => {
+    if (tauriGuestMode) {
+      return;
+    }
+
     if (!user) {
       navigate("/login");
       return;
@@ -72,14 +78,16 @@ export const VacancyCard = ({
           </Link>
         </div>
 
-        <button
-          className="ja-button ja-button--outline ja-button--wide"
-          type="button"
-          disabled={adding || (!!user && user.role !== "applicant")}
-          onClick={handleAddClick}
-        >
-          {adding ? "Добавление..." : "В заявку"}
-        </button>
+        {!tauriGuestMode && (
+          <button
+            className="ja-button ja-button--outline ja-button--wide"
+            type="button"
+            disabled={adding || (!!user && user.role !== "applicant")}
+            onClick={handleAddClick}
+          >
+            {adding ? "Добавление..." : "В заявку"}
+          </button>
+        )}
       </div>
     </article>
   );

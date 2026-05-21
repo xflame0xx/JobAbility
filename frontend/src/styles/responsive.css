@@ -1,0 +1,95 @@
+@media (max-width: 1180px) {
+  .topbar {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .userbox {
+    justify-content: center;
+  }
+
+  .home-hero,
+  .ja-detail-grid,
+  .application-main,
+  .application-content,
+  .service-box,
+  .ja-cabinet-grid,
+  .cabinet-grid,
+  .profile-grid,
+  .applicant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-grid,
+  .applications-page form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid,
+  .similar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-grid,
+  .application-stats,
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-image img {
+    height: 340px;
+  }
+}
+
+@media (max-width: 720px) {
+  .page,
+  .topbar {
+    width: min(100% - 24px, 1460px);
+  }
+
+  .topbar {
+    padding: 18px;
+  }
+
+  .topnav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-grid,
+  .applications-page form,
+  .ja-form-grid,
+  .application-form-grid,
+  .search {
+    grid-template-columns: 1fr;
+  }
+
+  .grid,
+  .similar-grid,
+  .stats-grid,
+  .application-stats,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .draft-card,
+  .draft-application-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ja-application-line-card__header,
+  .application-line-header,
+  .line-card-header {
+    grid-template-columns: 1fr;
+  }
+
+  .service-image img {
+    height: 250px;
+  }
+}

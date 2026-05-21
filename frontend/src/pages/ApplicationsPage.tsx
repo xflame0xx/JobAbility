@@ -1,122 +1,261 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Alert, Spinner } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
-import { fetchApplications } from "../api/applicationApi";
 import { ApplicationFilters } from "../components/ApplicationFilters";
-import { ApplicationListCard } from "../components/ApplicationListCard";
-
+import { buildApplicationUrl } from "../routes";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
-  EMPTY_APPLICATION_FILTERS,
-  type ApplicationFilters as ApplicationFiltersType,
+  applyApplicationFilters,
+  fetchApplicationsThunk,
+  moderateApplicationThunk,
+  resetApplicationFilters,
+  setApplicationFilters,
+} from "../store/applicationsSlice";
+import {
+  APPLICATION_STATUS_LABELS,
   type ApplicationListItem,
 } from "../types/application";
-import type { CurrentUser } from "../types/auth";
 
-interface ApplicationsPageProps {
-  user: CurrentUser | null;
-}
+const formatDateTime = (value: string | null) => {
+  if (!value) {
+    return "—";
+  }
 
-export const ApplicationsPage = ({ user }: ApplicationsPageProps) => {
-  const [filters, setFilters] =
-    useState<ApplicationFiltersType>(EMPTY_APPLICATION_FILTERS);
+  return new Date(value).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
-  const [appliedFilters, setAppliedFilters] =
-    useState<ApplicationFiltersType>(EMPTY_APPLICATION_FILTERS);
+const getToday = () => {
+  return new Date().toISOString().slice(0, 10);
+};
 
-  const [applications, setApplications] = useState<ApplicationListItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const getStatusClassName = (status: ApplicationListItem["status"]) => {
+  return `ja-status-badge ja-status-badge--${String(status).toLowerCase()}`;
+};
+
+export const ApplicationsPage = () => {
+  const dispatch = useAppDispatch();
+
+  const user = useAppSelector((state) => state.auth.user);
+  const {
+    filters,
+    appliedFilters,
+    items,
+    listLoading,
+    processingId,
+    error,
+    success,
+  } = useAppSelector((state) => state.applications);
+
+  const isModerator = user?.role === "moderator";
 
   useEffect(() => {
-    let ignore = false;
+    dispatch(fetchApplicationsThunk());
+  }, [dispatch, appliedFilters]);
 
-    const loadApplications = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  useEffect(() => {
+    if (!isModerator) {
+      return;
+    }
 
-        const data = await fetchApplications(appliedFilters);
+    const timerId = window.setInterval(() => {
+      dispatch(fetchApplicationsThunk());
+    }, 5000);
 
-        if (!ignore) {
-          setApplications(data);
-        }
-      } catch (err) {
-        if (!ignore) {
-          setError(
-            err instanceof Error ? err.message : "Не удалось загрузить заявки",
-          );
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
+    return () => window.clearInterval(timerId);
+  }, [dispatch, isModerator, appliedFilters]);
 
-    loadApplications();
+  const visibleItems = useMemo(() => {
+    const creator = appliedFilters.creator.trim().toLowerCase();
 
-    return () => {
-      ignore = true;
-    };
-  }, [appliedFilters]);
+    if (!isModerator || !creator) {
+      return items;
+    }
 
-  const handleSubmitFilters = () => {
-    setAppliedFilters(filters);
+    return items.filter((item) =>
+      item.creator_login.toLowerCase().includes(creator),
+    );
+  }, [items, isModerator, appliedFilters.creator]);
+
+  const setTodayRange = () => {
+    const today = getToday();
+
+    dispatch(
+      setApplicationFilters({
+        ...filters,
+        dateFrom: today,
+        dateTo: today,
+      }),
+    );
   };
 
-  const handleResetFilters = () => {
-    setFilters(EMPTY_APPLICATION_FILTERS);
-    setAppliedFilters(EMPTY_APPLICATION_FILTERS);
+  const handleModerate = (
+    application: ApplicationListItem,
+    action: "finish" | "reject",
+  ) => {
+    const note = window.prompt(
+      action === "finish" ? "Комментарий при завершении" : "Причина отклонения",
+      "",
+    );
+
+    dispatch(
+      moderateApplicationThunk({
+        id: application.id,
+        payload: {
+          action,
+          moderator_note: note || "",
+        },
+      }),
+    );
   };
 
   return (
-    <section className="ja-page-section">
-      <div className="ja-page-head">
+    <main className="applications-page">
+      <section className="ja-page-head applications-head">
         <span className="ja-section-label">Заявки</span>
 
-        <h1 className="page-title">
-          {user?.role === "moderator" ? "Все заявки" : "Мои заявки"}
-        </h1>
+        <h1>{isModerator ? "Все заявки" : "Мои заявки"}</h1>
 
         <p>
-          Здесь отображаются заявки, их статусы, даты обработки и итоговые суммы.
+          Отслеживайте заявки, проверяйте их статус, открывайте подробную
+          информацию и выполняйте доступные действия в зависимости от роли
+          пользователя.
         </p>
-      </div>
+      </section>
 
       <ApplicationFilters
         filters={filters}
-        loading={loading}
-        onChange={setFilters}
-        onSubmit={handleSubmitFilters}
-        onReset={handleResetFilters}
+        loading={listLoading}
+        showCreatorFilter={isModerator}
+        onChange={(value) => dispatch(setApplicationFilters(value))}
+        onSubmit={() => dispatch(applyApplicationFilters())}
+        onReset={() => dispatch(resetApplicationFilters())}
       />
 
+      <section className="applications-toolbar">
+        <button
+          className="ja-button ja-button--outline"
+          type="button"
+          onClick={setTodayRange}
+        >
+          Подставить диапазон за сегодня
+        </button>
+      </section>
+
       {error && (
-        <Alert variant="danger" className="ja-page-alert">
+        <Alert variant="danger" className="applications-alert">
           {error}
         </Alert>
       )}
 
-      {loading && (
-        <div className="ja-empty">
-          <Spinner animation="border" size="sm" /> Загрузка заявок...
+      {success && (
+        <Alert variant="success" className="applications-alert">
+          {success}
+        </Alert>
+      )}
+
+      {listLoading && (
+        <div className="applications-loading">
+          <Spinner animation="border" size="sm" />
+          <span>Загрузка заявок...</span>
         </div>
       )}
 
-      {!loading && applications.length > 0 && (
-        <div className="ja-application-list">
-          {applications.map((application) => (
-            <ApplicationListCard
-              key={application.id}
-              application={application}
-            />
-          ))}
-        </div>
+      {!listLoading && visibleItems.length === 0 && (
+        <div className="applications-empty">Заявок нет.</div>
       )}
 
-      {!loading && applications.length === 0 && (
-        <div className="ja-empty">Заявок нет</div>
+      {!listLoading && visibleItems.length > 0 && (
+        <div className="applications-table-wrap">
+          <table className="applications-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Создатель</th>
+                <th>Статус</th>
+                <th>Создана</th>
+                <th>Сформирована</th>
+                <th>Позиций</th>
+                <th>Сумма</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {visibleItems.map((application) => {
+                const total = application.total_sum || application.total_salary || 0;
+                const canModerate =
+                  isModerator && application.status === "FORMED";
+
+                return (
+                  <tr key={application.id}>
+                    <td>
+                      <strong>№{application.id}</strong>
+                    </td>
+
+                    <td>{application.creator_login}</td>
+
+                    <td>
+                      <span className={getStatusClassName(application.status)}>
+                        {APPLICATION_STATUS_LABELS[application.status]}
+                      </span>
+                    </td>
+
+                    <td>{formatDateTime(application.created_at)}</td>
+
+                    <td>{formatDateTime(application.formed_at)}</td>
+
+                    <td>{application.lines_count || 0}</td>
+
+                    <td>
+                      <strong>{total.toLocaleString("ru-RU")} ₽</strong>
+                    </td>
+
+                    <td>
+                      <div className="applications-actions">
+                        <Link
+                          className="ja-button applications-action-link"
+                          to={buildApplicationUrl(application.id)}
+                        >
+                          Открыть
+                        </Link>
+
+                        {canModerate && (
+                          <>
+                            <button
+                              className="ja-button applications-action-link"
+                              type="button"
+                              disabled={processingId === application.id}
+                              onClick={() => handleModerate(application, "finish")}
+                            >
+                              Завершить
+                            </button>
+
+                            <button
+                              className="ja-button ja-button--danger applications-action-link"
+                              type="button"
+                              disabled={processingId === application.id}
+                              onClick={() => handleModerate(application, "reject")}
+                            >
+                              Отклонить
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-    </section>
+    </main>
   );
 };
