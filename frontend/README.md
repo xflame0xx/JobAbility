@@ -16,6 +16,15 @@ npm run dev:mock
 
 GitHub Pages serves static frontend files only; it cannot run Django or host a
 database. The Pages build therefore opens in a complete demo mode by default.
+The published repository site is:
+
+```text
+https://xflame0xx.github.io/JobAbility/
+```
+
+The deployment workflow derives the `/JobAbility/` base path from the current
+GitHub repository name, so future repository renames do not require a manual
+Vite path edit.
 
 To use real data, deploy Django on a public HTTPS host and create this GitHub
 repository variable:
