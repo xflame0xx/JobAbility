@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from .Models import ApplicantProfile, Application, ApplicationVacancy, UserAccount, Vacancy
+from .models import ApplicantProfile, Application, ApplicationVacancy, UserAccount, Vacancy
 from .services import (
     apply_status_change,
     get_or_create_profile,

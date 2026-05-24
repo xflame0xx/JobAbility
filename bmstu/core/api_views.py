@@ -41,7 +41,7 @@ from .cache_utils import (
     set_cached_public_vacancies,
 )
 from .metrics import AUTH_ATTEMPTS_TOTAL
-from .Models import Application, ApplicationVacancy, UserAccount, Vacancy
+from .models import Application, ApplicationVacancy, UserAccount, Vacancy
 from .services import (
     approve_vacancy,
     ensure_demo_moderator,

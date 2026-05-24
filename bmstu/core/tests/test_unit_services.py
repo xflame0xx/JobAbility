@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase, tag
 
-from core.Models import transliterate_to_latin
+from core.models import transliterate_to_latin
 from core.services import parse_date
 
 

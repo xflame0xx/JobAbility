@@ -5,7 +5,7 @@ from django.db.models import Count, ExpressionWrapper, F, IntegerField, Max, Q, 
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from .Models import ApplicantProfile, Application, UserAccount, Vacancy
+from .models import ApplicantProfile, Application, UserAccount, Vacancy
 
 User = get_user_model()
 

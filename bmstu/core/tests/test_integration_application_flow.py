@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, tag
 from rest_framework.test import APIClient
 
-from core.Models import Application, UserAccount, Vacancy
+from core.models import Application, UserAccount, Vacancy
 
 User = get_user_model()
 

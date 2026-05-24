@@ -7,7 +7,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .api_serializers import RegisterSerializer
-from .Models import ApplicantProfile, Application, ApplicationVacancy, UserAccount, Vacancy
+from .models import ApplicantProfile, Application, ApplicationVacancy, UserAccount, Vacancy
 from .services import (
     apply_status_change,
     approve_vacancy,

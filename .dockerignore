@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+**/.env
+**/.venv
+**/__pycache__
+**/*.pyc
+**/node_modules
+**/dist
+**/*.log
+bmstu/db.sqlite3
+bmstu/media

@@ -1,0 +1,58 @@
+stages:
+  - build
+  - upload
+  - deploy
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+
+variables:
+  BACKEND_IMAGE: "jobability-backend:${CI_COMMIT_SHORT_SHA}"
+  FRONTEND_IMAGE: "jobability-frontend:${CI_COMMIT_SHORT_SHA}"
+  DOCKER_BUILDKIT: "1"
+
+default:
+  tags:
+    - jobability
+
+build:
+  stage: build
+  script:
+    - docker build -f deploy/docker/backend.Dockerfile -t "${BACKEND_IMAGE}" .
+    - docker build -f deploy/docker/frontend.Dockerfile -t "${FRONTEND_IMAGE}" .
+    - mkdir -p build-images
+    - docker save "${BACKEND_IMAGE}" -o build-images/backend.tar
+    - docker save "${FRONTEND_IMAGE}" -o build-images/frontend.tar
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - build-images/backend.tar
+      - build-images/frontend.tar
+
+upload:
+  stage: upload
+  dependencies:
+    - build
+  script:
+    - sudo /usr/local/bin/k3s ctr images import build-images/backend.tar
+    - sudo /usr/local/bin/k3s ctr images import build-images/frontend.tar
+
+deploy:
+  stage: deploy
+  script:
+    - test -f "${KUBECONFIG}"
+    - kubectl apply -f deploy/k8s/namespace.yaml
+    - kubectl -n jobability get secret jobability-secrets
+    - kubectl apply -f deploy/k8s/configmap.yaml
+    - kubectl apply -f deploy/k8s/postgres.yaml
+    - kubectl apply -f deploy/k8s/backend.yaml
+    - kubectl apply -f deploy/k8s/frontend.yaml
+    - kubectl apply -f deploy/k8s/ingress.yaml
+    - kubectl -n jobability set image deployment/backend backend="${BACKEND_IMAGE}"
+    - kubectl -n jobability set image deployment/frontend frontend="${FRONTEND_IMAGE}"
+    - kubectl -n jobability rollout status deployment/postgres --timeout=120s
+    - kubectl -n jobability rollout status deployment/backend --timeout=180s
+    - kubectl -n jobability rollout status deployment/frontend --timeout=120s
+    - kubectl -n jobability get pods,svc,ingress,configmap
