@@ -47,6 +47,8 @@
 
 - создан проект GitLab `https://gitlab.com/xflame0xx1/jobability`;
 - репозиторий подключен локально как remote `gitlab`;
+- ветка `main` с конфигурацией лабораторной опубликована в GitLab
+  (commit `491a4d6`);
 - подготовлены Dockerfiles для React/Nginx frontend и Django/Gunicorn backend;
 - подготовлены manifests для `ConfigMap`, `Service`, `Deployment`, `Ingress`,
   PostgreSQL и persistent volumes;
@@ -68,14 +70,13 @@ Nginx отдает интерфейс сайта и проксирует API п�
 
 ## Следующие шаги
 
-1. Отправить исходники и конфигурацию в GitLab.
-2. Установить и зарегистрировать GitLab Runner на VM с тегом `jobability`.
-3. Создать в GitLab переменную типа `File` с именем `KUBECONFIG`.
-4. Создать Kubernetes Secret для Django и PostgreSQL без публикации паролей в Git.
-5. Запустить Pipeline и проверить стадии `build`, `upload`, `deploy`.
-6. Проверить сайт через Traefik внутри VM.
-7. Подключить публичный URL через Cloudflare Tunnel и домен.
-8. Собрать отчет `.docx` со скриншотами результата.
+1. Установить и зарегистрировать GitLab Runner на VM с тегом `jobability`.
+2. Создать в GitLab переменную типа `File` с именем `KUBECONFIG`.
+3. Создать Kubernetes Secret для Django и PostgreSQL без публикации паролей в Git.
+4. Запустить Pipeline и проверить стадии `build`, `upload`, `deploy`.
+5. Проверить сайт через Traefik внутри VM.
+6. Подключить публичный URL через Cloudflare Tunnel и домен.
+7. Собрать отчет `.docx` со скриншотами результата.
 
 ## Скриншоты для отчета
 
