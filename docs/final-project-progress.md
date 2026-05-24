@@ -56,6 +56,10 @@
 - локально успешно собраны образы `jobability-backend:lab-check` и
   `jobability-frontend:lab-check`;
 - повторно выполнены сборка frontend и 11 тестов Django без ошибок.
+- на VM зарегистрирован GitLab Runner с shell executor;
+- настроены `KUBECONFIG` и Kubernetes Secret для развертывания приложения;
+- Pipeline `#254935598` для commit `82c954c` успешно завершил стадии
+  `build`, `upload`, `deploy` 25.05.2026.
 
 Архитектура деплоя:
 
@@ -70,13 +74,9 @@ Nginx отдает интерфейс сайта и проксирует API п�
 
 ## Следующие шаги
 
-1. Установить и зарегистрировать GitLab Runner на VM с тегом `jobability`.
-2. Создать в GitLab переменную типа `File` с именем `KUBECONFIG`.
-3. Создать Kubernetes Secret для Django и PostgreSQL без публикации паролей в Git.
-4. Запустить Pipeline и проверить стадии `build`, `upload`, `deploy`.
-5. Проверить сайт через Traefik внутри VM.
-6. Подключить публичный URL через Cloudflare Tunnel и домен.
-7. Собрать отчет `.docx` со скриншотами результата.
+1. Проверить созданные Kubernetes-ресурсы и сайт через Traefik внутри VM.
+2. Подключить публичный URL через Cloudflare Tunnel и домен.
+3. Собрать отчет `.docx` со скриншотами результата.
 
 ## Скриншоты для отчета
 
@@ -93,6 +93,9 @@ Nginx отдает интерфейс сайта и проксирует API п�
 | 07 | После деплоя на VM | Вывод `kubectl -n jobability get pods,svc,ingress,configmap` с Running pods | Kubernetes manifests |
 | 08 | После проверки сайта | Открытый сайт JobAbility через Ingress или публичный домен | Результат работы |
 | 09 | После Cloudflare Tunnel, если делаем публичность | Страница tunnel/hostname и сайт по HTTPS URL | Публичная публикация |
+
+Получен скриншот `04`: Pipeline `#254935598` успешно завершен, на странице
+видны зеленые стадии `build`, `upload`, `deploy`.
 
 ## Команды проверки результата
 
