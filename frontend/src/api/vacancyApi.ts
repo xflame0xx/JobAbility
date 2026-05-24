@@ -128,12 +128,11 @@ export const fetchVacancies = async (
 
     return data.map(normalizeVacancy);
   } catch (error) {
-    console.warn(
-      "Backend недоступен. Для списка вакансий используются mock-объекты.",
-      error,
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Не удалось загрузить вакансии из подключенного API",
     );
-
-    return fetchMockVacancies(filters);
   }
 };
 
@@ -155,18 +154,11 @@ export const fetchVacancyById = async (id: string): Promise<Vacancy> => {
 
     return normalizeVacancy(vacancy);
   } catch (error) {
-    console.warn(
-      "Backend недоступен. Детальная вакансия берётся из mock-объектов.",
-      error,
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Не удалось загрузить вакансию из подключенного API",
     );
-
-    const vacancy = MOCK_VACANCIES.find((item) => String(item.id) === id);
-
-    if (!vacancy) {
-      throw new Error("Вакансия не найдена");
-    }
-
-    return normalizeVacancy(vacancy);
   }
 };
 

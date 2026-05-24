@@ -80,9 +80,6 @@ export default defineConfig(({ mode }) => {
         includeAssets: [
           "favicon.svg",
           "icons.svg",
-          "fallback.svg",
-          "pwa-192.png",
-          "pwa-512.png",
         ],
 
         manifest: {
@@ -90,29 +87,14 @@ export default defineConfig(({ mode }) => {
           short_name: "JobAbility",
           description:
             "SPA-приложение для просмотра вакансий и формирования заявок.",
-          theme_color: "#635bff",
-          background_color: "#f3f6fb",
+          theme_color: "#5751ea",
+          background_color: "#f5f7fc",
           display: "standalone",
           orientation: "portrait",
+          lang: "ru",
           scope: base,
           start_url: base,
           icons: [
-            {
-              src: `${base}pwa-192.png`,
-              sizes: "192x192",
-              type: "image/png",
-            },
-            {
-              src: `${base}pwa-512.png`,
-              sizes: "512x512",
-              type: "image/png",
-            },
-            {
-              src: `${base}pwa-512.png`,
-              sizes: "512x512",
-              type: "image/png",
-              purpose: "any maskable",
-            },
             {
               src: `${base}favicon.svg`,
               sizes: "any",
@@ -124,6 +106,7 @@ export default defineConfig(({ mode }) => {
 
         workbox: {
           globPatterns: ["**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico}"],
+          globIgnores: ["**/ort-*.wasm", "**/transformers*.js"],
           navigateFallback: `${base}index.html`,
         },
 
@@ -137,6 +120,10 @@ export default defineConfig(({ mode }) => {
     base,
 
     plugins,
+
+    build: {
+      emptyOutDir: true,
+    },
 
     server: {
       host: devHost,

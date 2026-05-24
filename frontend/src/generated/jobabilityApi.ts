@@ -28,15 +28,21 @@ export const jobabilityAxios = axios.create({
 
 export const getApiErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ detail?: string }>;
+    const axiosError = error as AxiosError<{ detail?: string } | string>;
     const data = axiosError.response?.data;
 
     if (data && typeof data === "object" && "detail" in data && data.detail) {
       return String(data.detail);
     }
 
-    if (axiosError.response?.data) {
-      return JSON.stringify(axiosError.response.data);
+    if (typeof data === "string") {
+      return data.trimStart().startsWith("<")
+        ? "Сервер вернул страницу вместо данных API."
+        : data;
+    }
+
+    if (data) {
+      return "Сервер отклонил запрос.";
     }
 
     return axiosError.message;

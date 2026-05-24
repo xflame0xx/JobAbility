@@ -1,8 +1,14 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
-  ApplicationGeneratedApi,
-  getApiErrorMessage,
-} from "../generated/jobabilityApi";
+  deleteApplication,
+  deleteApplicationLine,
+  fetchApplicationById,
+  fetchApplications,
+  formApplication,
+  moderateApplication,
+  updateApplication,
+  updateApplicationLine,
+} from "../api/applicationApi";
 import {
   EMPTY_APPLICATION_FILTERS,
   type ApplicationDetail,
@@ -42,6 +48,9 @@ const initialState: ApplicationsState = {
   lastPollAt: null,
 };
 
+const toErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Не удалось выполнить запрос";
+
 export const fetchApplicationsThunk = createAsyncThunk<
   ApplicationListItem[],
   void,
@@ -50,9 +59,9 @@ export const fetchApplicationsThunk = createAsyncThunk<
   const { status, dateFrom, dateTo } = getState().applications.appliedFilters;
 
   try {
-    return await ApplicationGeneratedApi.applicationList({ status, dateFrom, dateTo });
+    return await fetchApplications({ status, dateFrom, dateTo, creator: "" });
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -62,9 +71,9 @@ export const fetchApplicationByIdThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/fetchById", async (id, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationGet(id);
+    return await fetchApplicationById(id);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -74,9 +83,9 @@ export const updateApplicationThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/update", async ({ id, payload }, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationUpdate(id, payload);
+    return await updateApplication(id, payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -86,9 +95,9 @@ export const updateApplicationLineThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/updateLine", async (payload, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationLineUpdate(payload);
+    return await updateApplicationLine(payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -98,10 +107,10 @@ export const deleteApplicationLineThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/deleteLine", async (vacancyId, { rejectWithValue }) => {
   try {
-    await ApplicationGeneratedApi.applicationLineDelete(vacancyId);
+    await deleteApplicationLine(vacancyId);
     return vacancyId;
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -111,9 +120,9 @@ export const formApplicationThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/form", async (id, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationForm(id);
+    return await formApplication(id);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -123,10 +132,10 @@ export const deleteApplicationThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/delete", async (id, { rejectWithValue }) => {
   try {
-    await ApplicationGeneratedApi.applicationDelete(id);
+    await deleteApplication(id);
     return id;
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -136,9 +145,9 @@ export const moderateApplicationThunk = createAsyncThunk<
   { rejectValue: string }
 >("applications/moderate", async ({ id, payload }, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationModerate(id, payload);
+    return await moderateApplication(id, payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 

@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
-  ApplicationGeneratedApi,
-  getApiErrorMessage,
-  VacancyGeneratedApi,
-} from "../generated/jobabilityApi";
+  addVacancyToApplication,
+  fetchApplicationCart,
+} from "../api/applicationApi";
+import { fetchVacancies } from "../api/vacancyApi";
 import {
   EMPTY_VACANCY_FILTERS,
   type Vacancy,
@@ -35,15 +35,18 @@ const initialState: VacanciesState = {
   success: "",
 };
 
+const toErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Не удалось выполнить запрос";
+
 export const fetchVacanciesThunk = createAsyncThunk<
   Vacancy[],
   void,
   { state: { vacancies: VacanciesState }; rejectValue: string }
 >("vacancies/fetchVacancies", async (_, { getState, rejectWithValue }) => {
   try {
-    return await VacancyGeneratedApi.vacancyList(getState().vacancies.appliedFilters);
+    return await fetchVacancies(getState().vacancies.appliedFilters);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -53,9 +56,10 @@ export const fetchCartThunk = createAsyncThunk<
   { rejectValue: string }
 >("vacancies/fetchCart", async (_, { rejectWithValue }) => {
   try {
-    return await ApplicationGeneratedApi.applicationCartGet();
+    const cart = await fetchApplicationCart();
+    return cart || { application_id: null, items_count: 0 };
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -65,10 +69,11 @@ export const addVacancyToDraftThunk = createAsyncThunk<
   { rejectValue: string }
 >("vacancies/addVacancyToDraft", async (vacancyId, { rejectWithValue }) => {
   try {
-    await ApplicationGeneratedApi.applicationLineAdd(vacancyId);
-    return await ApplicationGeneratedApi.applicationCartGet();
+    await addVacancyToApplication(vacancyId);
+    const cart = await fetchApplicationCart();
+    return cart || { application_id: null, items_count: 0 };
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 

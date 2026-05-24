@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-  getApiErrorMessage,
-  ProfileGeneratedApi,
-} from "../generated/jobabilityApi";
+  fetchApplicantProfile,
+  updateApplicantProfile,
+} from "../api/cabinetApi";
 import type { ApplicantProfile } from "../types/application";
 
 interface ProfileState {
@@ -21,15 +21,18 @@ const initialState: ProfileState = {
   success: "",
 };
 
+const toErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Не удалось выполнить запрос";
+
 export const fetchProfileThunk = createAsyncThunk<
   ApplicantProfile,
   void,
   { rejectValue: string }
 >("profile/fetch", async (_, { rejectWithValue }) => {
   try {
-    return await ProfileGeneratedApi.applicantProfileGet();
+    return await fetchApplicantProfile();
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -39,9 +42,9 @@ export const updateProfileThunk = createAsyncThunk<
   { rejectValue: string }
 >("profile/update", async (payload, { rejectWithValue }) => {
   try {
-    return await ProfileGeneratedApi.applicantProfileUpdate(payload);
+    return await updateApplicantProfile(payload, null);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 

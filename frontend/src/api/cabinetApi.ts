@@ -155,6 +155,15 @@ export const fetchApplicantCabinet = async (
   };
 };
 
+export const fetchApplicantProfile = async (): Promise<ApplicantProfile> => {
+  if (isMockMode()) {
+    await delay(180);
+    return { ...mockProfile };
+  }
+
+  return apiRequest<ApplicantProfile>("/api/users/profile/");
+};
+
 export const updateApplicantProfile = async (
   profile: ApplicantProfile,
   _draftId: number | null,

@@ -2,11 +2,43 @@ import { apiRequest, isMockMode } from "./apiClient";
 import type {
   CurrentUser,
   LoginPayload,
+  PasswordChangePayload,
   RegisterPayload,
   UserRole,
 } from "../types/auth";
 
-let mockUser: CurrentUser | null = null;
+const MOCK_USER_KEY = "jobability_demo_user";
+
+const readMockUser = (): CurrentUser | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const value = window.sessionStorage.getItem(MOCK_USER_KEY);
+    return value ? (JSON.parse(value) as CurrentUser) : null;
+  } catch {
+    return null;
+  }
+};
+
+const storeMockUser = (user: CurrentUser | null) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    if (user) {
+      window.sessionStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
+    } else {
+      window.sessionStorage.removeItem(MOCK_USER_KEY);
+    }
+  } catch {
+    // Demo auth continues in memory when storage is unavailable.
+  }
+};
+
+let mockUser: CurrentUser | null = readMockUser();
 
 const getMockRoleByUsername = (username: string): UserRole => {
   const value = username.trim().toLowerCase();
@@ -64,6 +96,7 @@ export const loginUser = async (
   if (isMockMode()) {
     const role = getMockRoleByUsername(payload.username);
     mockUser = buildMockUser(payload.username, role);
+    storeMockUser(mockUser);
     return mockUser;
   }
 
@@ -89,6 +122,7 @@ export const registerUser = async (
 ): Promise<void> => {
   if (isMockMode()) {
     mockUser = null;
+    storeMockUser(null);
     return;
   }
 
@@ -114,10 +148,25 @@ export const registerUser = async (
 export const logoutUser = async (): Promise<void> => {
   if (isMockMode()) {
     mockUser = null;
+    storeMockUser(null);
     return;
   }
 
   await apiRequest("/api/users/logout/", {
     method: "POST",
+  });
+};
+
+export const changePassword = async (
+  payload: PasswordChangePayload,
+): Promise<void> => {
+  if (isMockMode()) {
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+    return;
+  }
+
+  await apiRequest("/api/users/password/", {
+    method: "PUT",
+    json: payload,
   });
 };

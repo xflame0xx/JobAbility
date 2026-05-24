@@ -202,7 +202,7 @@ export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
             </Link>
 
             <div className="salary-tag">
-              З/п: {vacancy.salary.toLocaleString("ru-RU")} ₽
+              {vacancy.salary.toLocaleString("ru-RU")} ₽ / мес.
             </div>
           </div>
         </div>

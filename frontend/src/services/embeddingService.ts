@@ -1,4 +1,3 @@
-import { pipeline } from "@huggingface/transformers";
 import type { Vacancy } from "../types/vacancy";
 
 type FeatureExtractor = (
@@ -20,10 +19,13 @@ let extractorPromise: Promise<FeatureExtractor> | null = null;
 
 const getExtractor = async (): Promise<FeatureExtractor> => {
   if (!extractorPromise) {
-    extractorPromise = pipeline(
-      "feature-extraction",
-      "Xenova/all-MiniLM-L6-v2",
-    ) as unknown as Promise<FeatureExtractor>;
+    extractorPromise = import("@huggingface/transformers").then(
+      ({ pipeline }) =>
+        pipeline(
+          "feature-extraction",
+          "Xenova/all-MiniLM-L6-v2",
+        ) as unknown as Promise<FeatureExtractor>,
+    );
   }
 
   return extractorPromise;

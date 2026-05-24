@@ -1,11 +1,11 @@
 @media (max-width: 1180px) {
   .topbar {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
+    grid-template-columns: minmax(230px, auto) 1fr;
+    gap: 16px;
   }
 
   .userbox {
+    grid-column: 1 / -1;
     justify-content: center;
   }
 
@@ -49,17 +49,28 @@
 @media (max-width: 720px) {
   .page,
   .topbar {
-    width: min(100% - 24px, 1460px);
+    width: min(100% - 24px, 1240px);
   }
 
   .topbar {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
     padding: 18px;
+  }
+
+  .brand {
+    justify-content: center;
   }
 
   .topnav {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .data-status {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .filter-grid,

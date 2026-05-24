@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Spinner } from "react-bootstrap";
+import { isMockMode } from "../api/apiClient";
 import { ROUTES } from "../routes";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { loginThunk } from "../store/authSlice";
@@ -30,6 +31,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.auth.status);
   const authError = useAppSelector((state) => state.auth.error);
+  const demoMode = isMockMode();
 
   const [form, setForm] = useState<LoginPayload>({ username: "", password: "" });
 
@@ -52,40 +54,39 @@ export const LoginPage = () => {
     <section className="ja-auth-screen">
       <div className="ja-auth-info">
         <span className="ja-section-label">Авторизация</span>
-        <h1>Вход в систему</h1>
+        <h1>Добро пожаловать</h1>
         <p>
-          После успешного входа backend создаёт session-cookie. Redux хранит только
-          состояние интерфейса: текущего пользователя, загрузку и ошибку.
+          Войдите, чтобы управлять откликами, сохранять вакансии и следить за
+          статусом заявок в одном месте.
         </p>
 
-        <div className="ja-demo-box">
-          <div className="ja-demo-box__title">Быстрое заполнение модератора</div>
-          <div className="ja-demo-box__row">
-            <span>Логин</span>
-            <strong>{DEMO_MODERATOR.username}</strong>
+        {demoMode && (
+          <div className="ja-demo-box">
+            <div className="ja-demo-box__title">Посмотреть кабинет модератора</div>
+            <p className="ja-demo-box__hint">
+              Для Pages это безопасная демонстрация: изменения сохраняются
+              только в текущей вкладке.
+            </p>
+            <button
+              type="button"
+              className="ja-button ja-button--light"
+              onClick={() => setForm(DEMO_MODERATOR)}
+            >
+              Заполнить демо-вход
+            </button>
           </div>
-          <div className="ja-demo-box__row">
-            <span>Пароль</span>
-            <strong>{DEMO_MODERATOR.password}</strong>
-          </div>
-          <button
-            type="button"
-            className="ja-button ja-button--light"
-            onClick={() => setForm(DEMO_MODERATOR)}
-          >
-            Подставить данные
-          </button>
-        </div>
+        )}
       </div>
 
       <form className="ja-auth-form" onSubmit={handleSubmit}>
-        <h2>Войти</h2>
+        <h2>Вход</h2>
 
         {authError && <Alert variant="danger">{authError}</Alert>}
 
         <label className="ja-form-field">
           <span>Логин</span>
           <input
+            placeholder="Ваш логин"
             value={form.username}
             required
             autoComplete="username"
@@ -97,6 +98,7 @@ export const LoginPage = () => {
           <span>Пароль</span>
           <input
             type="password"
+            placeholder="Ваш пароль"
             value={form.password}
             required
             autoComplete="current-password"

@@ -1,13 +1,13 @@
 :root {
-  --ja-page-bg: #f3f6fb;
+  --ja-page-bg: #f5f7fc;
   --ja-panel: #ffffff;
   --ja-panel-soft: #f8fafc;
   --ja-text: #111827;
   --ja-muted: #64748b;
   --ja-line: #dbe3ef;
   --ja-line-soft: #edf1f7;
-  --ja-primary: #635bff;
-  --ja-primary-dark: #4f46e5;
+  --ja-primary: #5751ea;
+  --ja-primary-dark: #4338ca;
   --ja-danger: #dc2626;
   --ja-radius-xl: 28px;
   --ja-radius-lg: 22px;
@@ -179,9 +179,9 @@ img {
 
 .ja-auth-screen {
   display: grid;
-  grid-template-columns: 1fr minmax(380px, 500px);
-  gap: 26px;
-  align-items: start;
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 430px);
+  gap: 22px;
+  align-items: stretch;
 }
 
 .ja-auth-info,
@@ -193,9 +193,14 @@ img {
 }
 
 .ja-auth-info {
-  background: linear-gradient(135deg, #3b36d8, #3aa8df);
+  background:
+    radial-gradient(circle at 12% 6%, rgba(255, 255, 255, 0.2), transparent 28%),
+    linear-gradient(140deg, #4338ca 0%, #5550e8 47%, #0284c7 100%);
   color: white;
-  padding: 34px;
+  padding: clamp(30px, 4vw, 46px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .ja-auth-info .ja-section-label {
@@ -204,32 +209,33 @@ img {
 
 .ja-auth-info h1 {
   margin: 0 0 16px;
-  font-size: clamp(34px, 4vw, 56px);
+  font-size: clamp(34px, 4vw, 50px);
   line-height: 1.05;
   font-weight: 900;
 }
 
 .ja-auth-info p {
   color: rgba(255, 255, 255, 0.86);
-  font-size: 17px;
+  max-width: 580px;
+  font-size: 16px;
   line-height: 1.65;
 }
 
 .ja-auth-form {
   background: var(--ja-panel);
-  padding: 30px;
+  padding: clamp(26px, 3vw, 34px);
   display: grid;
   gap: 18px;
 }
 
 .ja-auth-form h2 {
   margin: 0;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 900;
 }
 
 .ja-demo-box {
-  margin-top: 26px;
+  margin-top: 28px;
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.24);
   padding: 18px;
@@ -242,10 +248,28 @@ img {
   font-size: 18px;
 }
 
+.ja-demo-box__hint {
+  margin: 0 0 4px;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
 .ja-demo-box__row {
   display: flex;
   justify-content: space-between;
   gap: 14px;
+}
+
+.ja-auth-screen--register {
+  grid-template-columns: minmax(290px, 0.73fr) minmax(460px, 1fr);
+}
+
+.ja-auth-screen--register .ja-auth-info {
+  justify-content: flex-start;
+}
+
+.ja-auth-form--register {
+  gap: 15px;
 }
 
 .ja-demo-box__row span {

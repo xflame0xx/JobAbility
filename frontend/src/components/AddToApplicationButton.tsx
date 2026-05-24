@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-  ApplicationGeneratedApi,
-  getApiErrorMessage,
-} from "../generated/jobabilityApi";
+import { addVacancyToApplication } from "../api/applicationApi";
 import { ROUTES } from "../routes";
 import { useAppSelector } from "../store/hooks";
 
@@ -40,11 +37,13 @@ export const AddToApplicationButton = ({
       setLoading(true);
       setMessage("");
 
-      const response = await ApplicationGeneratedApi.applicationLineAdd(vacancyId);
+      const response = await addVacancyToApplication(vacancyId);
 
       setMessage(`Добавлено в заявку №${response.application_id}`);
     } catch (error) {
-      setMessage(getApiErrorMessage(error));
+      setMessage(
+        error instanceof Error ? error.message : "Не удалось добавить вакансию",
+      );
     } finally {
       setLoading(false);
     }

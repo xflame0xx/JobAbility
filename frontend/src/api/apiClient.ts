@@ -35,7 +35,11 @@ export const isMockMode = () => {
   }
 
   if (runtimeMode === "backend") {
-    return false;
+    /*
+      GitHub Pages has no same-origin API. A remembered manual switch should
+      not send requests to static HTML unless a public API URL is configured.
+    */
+    return import.meta.env.VITE_APP_TARGET === "pages" && !getApiBaseUrl();
   }
 
   return import.meta.env.VITE_USE_MOCK === "true";
@@ -104,9 +108,18 @@ export const apiRequest = async <T>(
 
     try {
       const data = await response.json();
-      message = data.detail || JSON.stringify(data);
+      if (data && typeof data === "object") {
+        const detail = "detail" in data ? data.detail : null;
+        message =
+          typeof detail === "string"
+            ? detail
+            : `Сервер отклонил запрос (${response.status}).`;
+      }
     } catch {
-      // Если ответ сервера не JSON, оставляем стандартный текст ошибки.
+      message =
+        response.status === 404 && import.meta.env.VITE_APP_TARGET === "pages"
+          ? "API не подключен. Сейчас доступен демонстрационный режим."
+          : `Не удалось выполнить запрос (${response.status}).`;
     }
 
     throw new Error(message);

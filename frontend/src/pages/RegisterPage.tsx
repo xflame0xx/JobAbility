@@ -41,17 +41,17 @@ export const RegisterPage = () => {
   };
 
   return (
-    <section className="auth-layout auth-layout--single">
-      <div className="auth-hero">
-        <span className="eyebrow">Регистрация</span>
-        <h1>Создание аккаунта</h1>
+    <section className="ja-auth-screen ja-auth-screen--register">
+      <div className="ja-auth-info">
+        <span className="ja-section-label">Регистрация</span>
+        <h1>Начните поиск без барьеров</h1>
         <p>
-          Регистрация выполняется через thunk. После неё пользователь вручную
-          переходит на вход, чтобы отдельно показать авторизацию.
+          Создайте профиль соискателя для откликов или аккаунт работодателя,
+          чтобы публиковать вакансии и находить специалистов.
         </p>
       </div>
 
-      <form className="auth-card" onSubmit={handleSubmit}>
+      <form className="ja-auth-form ja-auth-form--register" onSubmit={handleSubmit}>
         <h2>Новый аккаунт</h2>
         {authError && <Alert variant="danger">{authError}</Alert>}
 
@@ -130,7 +130,7 @@ export const RegisterPage = () => {
           </div>
         </div>
 
-        <button className="btn btn-block" type="submit" disabled={status === "loading"}>
+        <button className="ja-button ja-button--wide" type="submit" disabled={status === "loading"}>
           {status === "loading" ? <Spinner size="sm" animation="border" /> : "Создать аккаунт"}
         </button>
       </form>

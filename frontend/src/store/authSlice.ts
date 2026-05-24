@@ -1,8 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-  AuthGeneratedApi,
-  getApiErrorMessage,
-} from "../generated/jobabilityApi";
+  changePassword,
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+} from "../api/authApi";
 import type {
   CurrentUser,
   LoginPayload,
@@ -28,25 +31,18 @@ const initialState: AuthState = {
   passwordError: "",
 };
 
+const toErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Не удалось выполнить запрос";
+
 export const loadCurrentUserThunk = createAsyncThunk<
   CurrentUser | null,
   void,
   { rejectValue: string }
 >("auth/loadCurrentUser", async (_, { rejectWithValue }) => {
   try {
-    return await AuthGeneratedApi.authMe();
+    return await getCurrentUser();
   } catch (error) {
-    const message = getApiErrorMessage(error);
-
-    if (
-      message.includes("401") ||
-      message.includes("403") ||
-      message.includes("Требуется")
-    ) {
-      return null;
-    }
-
-    return rejectWithValue(message);
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -56,9 +52,9 @@ export const loginThunk = createAsyncThunk<
   { rejectValue: string }
 >("auth/login", async (payload, { rejectWithValue }) => {
   try {
-    return await AuthGeneratedApi.authLogin(payload);
+    return await loginUser(payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -68,9 +64,9 @@ export const registerThunk = createAsyncThunk<
   { rejectValue: string }
 >("auth/register", async (payload, { rejectWithValue }) => {
   try {
-    await AuthGeneratedApi.authRegister(payload);
+    await registerUser(payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
@@ -78,9 +74,9 @@ export const logoutThunk = createAsyncThunk<void, void, { rejectValue: string }>
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      await AuthGeneratedApi.authLogout();
+      await logoutUser();
     } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error));
+      return rejectWithValue(toErrorMessage(error));
     }
   },
 );
@@ -91,9 +87,9 @@ export const changePasswordThunk = createAsyncThunk<
   { rejectValue: string }
 >("auth/changePassword", async (payload, { rejectWithValue }) => {
   try {
-    await AuthGeneratedApi.authPasswordChange(payload);
+    await changePassword(payload);
   } catch (error) {
-    return rejectWithValue(getApiErrorMessage(error));
+    return rejectWithValue(toErrorMessage(error));
   }
 });
 
