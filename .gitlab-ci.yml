@@ -45,14 +45,33 @@ deploy:
     - test -f "${KUBECONFIG}"
     - kubectl apply -f deploy/k8s/namespace.yaml
     - kubectl -n jobability get secret jobability-secrets
+    - kubectl -n jobability get secret jobability-monitoring-secrets
+    - test -n "$(kubectl -n jobability get secret jobability-secrets -o jsonpath='{.data.MINIO_ROOT_USER}')"
+    - test -n "$(kubectl -n jobability get secret jobability-secrets -o jsonpath='{.data.MINIO_ROOT_PASSWORD}')"
     - kubectl apply -f deploy/k8s/configmap.yaml
     - kubectl apply -f deploy/k8s/postgres.yaml
+    - kubectl apply -f deploy/k8s/redis.yaml
+    - kubectl -n jobability delete job minio-bootstrap --ignore-not-found=true
+    - kubectl apply -f deploy/k8s/minio.yaml
+    - kubectl -n jobability rollout status deployment/postgres --timeout=120s
+    - kubectl -n jobability rollout status deployment/redis --timeout=120s
+    - kubectl -n jobability rollout status deployment/minio --timeout=180s
+    - kubectl -n jobability wait --for=condition=complete job/minio-bootstrap --timeout=180s
+    - kubectl -n jobability create configmap prometheus-config --from-file=prometheus.yml=monitoring/prometheus.k8s.yml --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl -n jobability create configmap grafana-datasource --from-file=prometheus.yml=monitoring/grafana/provisioning/datasources/prometheus.yml --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl -n jobability create configmap grafana-dashboard-provider --from-file=dashboards.yml=monitoring/grafana/provisioning/dashboards/dashboards.yml --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl -n jobability create configmap grafana-dashboard-jobability --from-file=jobability-observability.json=monitoring/grafana/dashboards/jobability-observability.json --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl apply -f deploy/k8s/monitoring.yaml
+    - kubectl apply -f deploy/k8s/adminer.yaml
     - kubectl apply -f deploy/k8s/backend.yaml
     - kubectl apply -f deploy/k8s/frontend.yaml
     - kubectl apply -f deploy/k8s/ingress.yaml
     - kubectl -n jobability set image deployment/backend backend="${BACKEND_IMAGE}"
     - kubectl -n jobability set image deployment/frontend frontend="${FRONTEND_IMAGE}"
-    - kubectl -n jobability rollout status deployment/postgres --timeout=120s
+    - kubectl -n jobability rollout restart deployment/prometheus deployment/grafana
     - kubectl -n jobability rollout status deployment/backend --timeout=180s
     - kubectl -n jobability rollout status deployment/frontend --timeout=120s
-    - kubectl -n jobability get pods,svc,ingress,configmap
+    - kubectl -n jobability rollout status deployment/prometheus --timeout=180s
+    - kubectl -n jobability rollout status deployment/grafana --timeout=180s
+    - kubectl -n jobability rollout status deployment/adminer --timeout=120s
+    - kubectl -n jobability get pods,svc,ingress,configmap,pvc

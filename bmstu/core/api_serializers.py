@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
@@ -55,11 +56,21 @@ class VacancySerializer(serializers.ModelSerializer):
             "is_published",
         ]
 
+    @staticmethod
+    def get_file_url(file_field):
+        if not file_field:
+            return None
+
+        if settings.USE_MINIO:
+            return f"{settings.MEDIA_URL.rstrip('/')}/{file_field.name.lstrip('/')}"
+
+        return file_field.url
+
     def get_image_url(self, obj):
-        return obj.image.url if obj.image else None
+        return self.get_file_url(obj.image)
 
     def get_video_url(self, obj):
-        return obj.video.url if obj.video else None
+        return self.get_file_url(obj.video)
 
     def get_is_published(self, obj):
         return obj.is_published
