@@ -39,6 +39,7 @@ export const VacanciesPage = () => {
   const [loading, setLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
   const [addingVacancyId, setAddingVacancyId] = useState<number | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -109,10 +110,12 @@ export const VacanciesPage = () => {
 
   const handleSubmitFilters = () => {
     dispatch(applyVacancyFilters());
+    setFiltersOpen(false);
   };
 
   const handleResetFilters = () => {
     dispatch(resetVacancyFilters());
+    setFiltersOpen(false);
   };
 
   const handleAddToApplication = async (vacancyId: number) => {
@@ -157,13 +160,27 @@ export const VacanciesPage = () => {
         </p>
       </div>
 
-      <VacancyFilters
-        filters={filters}
-        loading={loading}
-        onChange={(nextFilters) => dispatch(setVacancyFilters(nextFilters))}
-        onSubmit={handleSubmitFilters}
-        onReset={handleResetFilters}
-      />
+      <div className="ja-filters">
+        <button
+          className="ja-filters__toggle"
+          type="button"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((opened) => !opened)}
+        >
+          <span>Фильтры поиска</span>
+          <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+        </button>
+
+        <div className={`ja-filters__panel ${filtersOpen ? "ja-filters__panel--open" : ""}`}>
+          <VacancyFilters
+            filters={filters}
+            loading={loading}
+            onChange={(nextFilters) => dispatch(setVacancyFilters(nextFilters))}
+            onSubmit={handleSubmitFilters}
+            onReset={handleResetFilters}
+          />
+        </div>
+      </div>
 
       {!tauriGuestMode &&
         (cartLoading ? (
@@ -191,17 +208,24 @@ export const VacanciesPage = () => {
       )}
 
       {!loading && vacancies.length > 0 && (
-        <div className="grid">
-          {vacancies.map((vacancy) => (
-            <VacancyCard
-              key={vacancy.id}
-              vacancy={vacancy}
-              user={user}
-              adding={addingVacancyId === vacancy.id}
-              onAddToApplication={handleAddToApplication}
-            />
-          ))}
-        </div>
+        <>
+          <div className="ja-results-summary" aria-live="polite">
+            <span>Найдено вакансий</span>
+            <strong>{vacancies.length}</strong>
+          </div>
+
+          <div className="grid">
+            {vacancies.map((vacancy) => (
+              <VacancyCard
+                key={vacancy.id}
+                vacancy={vacancy}
+                user={user}
+                adding={addingVacancyId === vacancy.id}
+                onAddToApplication={handleAddToApplication}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {!loading && vacancies.length === 0 && (

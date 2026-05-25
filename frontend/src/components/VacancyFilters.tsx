@@ -86,11 +86,16 @@ export const VacancyFilters = ({
         />
       </label>
 
-      <button type="submit" disabled={loading}>
+      <button className="ja-button" type="submit" disabled={loading}>
         Найти
       </button>
 
-      <button type="button" disabled={loading} onClick={onReset}>
+      <button
+        className="ja-button ja-button--outline"
+        type="button"
+        disabled={loading}
+        onClick={onReset}
+      >
         Сбросить
       </button>
     </form>

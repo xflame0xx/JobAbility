@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { isMockMode, isTauriGuestMode } from "../api/apiClient";
 import { getBackendPageUrl, ROUTES } from "../routes";
@@ -10,6 +11,8 @@ import { logoutThunk } from "../store/authSlice";
 export const AppNavbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const user = useAppSelector((state) => state.auth.user);
 
@@ -18,90 +21,113 @@ export const AppNavbar = () => {
 
   const showBackendLinks = !tauriGuestMode && !mockMode;
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     await dispatch(logoutThunk()).unwrap();
     navigate(ROUTES.LOGIN);
   };
 
   return (
-    <header className="topbar">
-      <Link to={ROUTES.HOME} className="brand">
-        <span className="brand-badge">JA</span>
+    <header className={`topbar ${menuOpen ? "topbar--open" : ""}`}>
+      <div className="topbar__head">
+        <Link to={ROUTES.HOME} className="brand">
+          <span className="brand-badge">JA</span>
 
-        <span className="brand-text">
-          <strong className="brand-name">JobAbility</strong>
-          <small className="brand-sub">Платформа вакансий и откликов</small>
-        </span>
-      </Link>
+          <span className="brand-text">
+            <strong className="brand-name">JobAbility</strong>
+            <small className="brand-sub">Платформа вакансий и откликов</small>
+          </span>
+        </Link>
 
-      <nav className="topnav">
-        <Link to={ROUTES.HOME}>Главная</Link>
-        <Link to={ROUTES.VACANCIES}>Вакансии</Link>
+        <button
+          type="button"
+          className="topbar__toggle"
+          aria-expanded={menuOpen}
+          aria-controls="site-navigation"
+          onClick={() => setMenuOpen((opened) => !opened)}
+        >
+          <span className="sr-only">Открыть меню</span>
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
 
-        {!tauriGuestMode && user && (
-          <>
-            {(user.role === "applicant" || user.role === "moderator") && (
-              <Link to={ROUTES.APPLICATIONS}>Заявки</Link>
-            )}
+      <div id="site-navigation" className="topbar__menu">
+        <nav className="topnav" aria-label="Основная навигация">
+          <NavLink to={ROUTES.HOME} end>
+            Главная
+          </NavLink>
+          <NavLink to={ROUTES.VACANCIES}>Вакансии</NavLink>
 
-            {user.role === "applicant" && (
-              <Link to={ROUTES.APPLICANT_CABINET}>Личный кабинет</Link>
-            )}
-
-            {user.role === "employer" && (
-              <>
-                <Link to={ROUTES.EMPLOYER_CABINET}>Личный кабинет</Link>
-                <Link to={ROUTES.EMPLOYER_RESPONSES}>Отклики</Link>
-              </>
-            )}
-
-            {user.role === "moderator" && (
-              <Link to={ROUTES.MODERATOR_CABINET}>Личный кабинет</Link>
-            )}
-          </>
-        )}
-
-        {showBackendLinks && (
-          <>
-            <a href={getBackendPageUrl(ROUTES.SWAGGER)}>Swagger</a>
-            <a href={getBackendPageUrl(ROUTES.ADMIN)}>Admin</a>
-          </>
-        )}
-      </nav>
-
-      {!tauriGuestMode && (
-        <div className="userbox">
-          {user ? (
+          {!tauriGuestMode && user && (
             <>
-              <div className="user-meta">
-                <div className="user-name">
-                  {user.full_name || user.username}
-                </div>
+              {(user.role === "applicant" || user.role === "moderator") && (
+                <NavLink to={ROUTES.APPLICATIONS}>Заявки</NavLink>
+              )}
 
-                <div className="user-role">{ROLE_LABELS[user.role]}</div>
-              </div>
+              {user.role === "applicant" && (
+                <NavLink to={ROUTES.APPLICANT_CABINET}>Личный кабинет</NavLink>
+              )}
 
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={handleLogout}
-              >
-                Выйти
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to={ROUTES.LOGIN} className="btn btn-ghost">
-                Войти
-              </Link>
+              {user.role === "employer" && (
+                <>
+                  <NavLink to={ROUTES.EMPLOYER_CABINET}>Личный кабинет</NavLink>
+                  <NavLink to={ROUTES.EMPLOYER_RESPONSES}>Отклики</NavLink>
+                </>
+              )}
 
-              <Link to={ROUTES.REGISTER} className="btn">
-                Регистрация
-              </Link>
+              {user.role === "moderator" && (
+                <NavLink to={ROUTES.MODERATOR_CABINET}>Личный кабинет</NavLink>
+              )}
             </>
           )}
-        </div>
-      )}
+
+          {showBackendLinks && (
+            <>
+              <a href={getBackendPageUrl(ROUTES.SWAGGER)}>Swagger</a>
+              <a href={getBackendPageUrl(ROUTES.ADMIN)}>Admin</a>
+            </>
+          )}
+        </nav>
+
+        {!tauriGuestMode && (
+          <div className="userbox">
+            {user ? (
+              <>
+                <div className="user-meta">
+                  <div className="user-name">
+                    {user.full_name || user.username}
+                  </div>
+
+                  <div className="user-role">{ROLE_LABELS[user.role]}</div>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={handleLogout}
+                >
+                  Выйти
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to={ROUTES.LOGIN} className="btn btn-ghost">
+                  Войти
+                </Link>
+
+                <Link to={ROUTES.REGISTER} className="btn">
+                  Регистрация
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 };

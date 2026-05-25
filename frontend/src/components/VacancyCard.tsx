@@ -57,6 +57,13 @@ export const VacancyCard = ({
       </Link>
 
       <div className="ja-vacancy-card__body">
+        <div className="ja-vacancy-card__tags">
+          <span>{vacancy.schedule || "Гибкий график"}</span>
+          {vacancy.disability_support && (
+            <span className="ja-vacancy-card__tag--accessible">Доступная среда</span>
+          )}
+        </div>
+
         <Link
           className="ja-vacancy-card__title"
           to={`/vacancies/${vacancy.id}`}

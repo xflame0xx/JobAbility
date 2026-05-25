@@ -19,10 +19,31 @@ export const HomePage = () => {
             Интерфейс адаптирован для компьютера, планшета и телефона.
           </p>
 
+          <div className="home-hero__chips" aria-label="Преимущества платформы">
+            <span>Доступные вакансии</span>
+            <span>Удобные отклики</span>
+            <span>Адаптивный интерфейс</span>
+          </div>
+
           <div className="home-hero__actions">
             <Link to={ROUTES.VACANCIES} className="ja-button">
               Перейти к вакансиям
             </Link>
+          </div>
+
+          <div className="home-hero__stats" aria-label="Возможности сервиса">
+            <div>
+              <strong>01</strong>
+              <span>Поиск и фильтры</span>
+            </div>
+            <div>
+              <strong>02</strong>
+              <span>Личный кабинет</span>
+            </div>
+            <div>
+              <strong>03</strong>
+              <span>Отклики онлайн</span>
+            </div>
           </div>
         </div>
 
