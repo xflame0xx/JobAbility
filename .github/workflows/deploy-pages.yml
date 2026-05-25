@@ -37,7 +37,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          for attempt in 1 2 3; do
+            npm ci && exit 0
+            if [ "$attempt" -eq 3 ]; then
+              exit 1
+            fi
+            echo "npm ci failed on attempt ${attempt}; retrying after a short delay."
+            sleep $((attempt * 10))
+          done
 
       - name: Build Pages version
         env:
