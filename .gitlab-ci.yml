@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - upload
   - deploy
 
@@ -30,6 +31,14 @@ build:
     paths:
       - build-images/backend.tar
       - build-images/frontend.tar
+
+test_backend:
+  stage: test
+  dependencies:
+    - build
+  script:
+    - docker load -i build-images/backend.tar
+    - docker run --rm --entrypoint python "${BACKEND_IMAGE}" manage.py test core.tests --settings=config.test_settings
 
 upload:
   stage: upload
