@@ -38,7 +38,7 @@ test_backend:
     - build
   script:
     - docker load -i build-images/backend.tar
-    - docker run --rm --entrypoint python "${BACKEND_IMAGE}" manage.py test core.tests --settings=config.test_settings
+    - docker run --rm --entrypoint python "${BACKEND_IMAGE}" manage.py test core --settings=config.test_settings
 
 upload:
   stage: upload
