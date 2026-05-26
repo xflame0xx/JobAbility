@@ -150,13 +150,13 @@ export const VacanciesPage = () => {
   return (
     <section className="ja-page-section">
       <div className="ja-page-head">
-        <span className="ja-section-label">Каталог вакансий</span>
+        <span className="ja-section-label">Доступные возможности</span>
 
-        <h1 className="page-title">Вакансии для соискателей</h1>
+        <h1 className="page-title">Вакансии без барьеров</h1>
 
         <p>
-          Найдите подходящую роль по направлению, городу и зарплате. Фильтры
-          сохраняются при переходе между вакансиями.
+          Выбирайте работу по профессии, городу, графику и условиям
+          доступности рабочего места.
         </p>
       </div>
 

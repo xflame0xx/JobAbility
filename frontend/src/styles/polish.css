@@ -45,6 +45,13 @@
   box-shadow: 0 9px 24px rgba(51, 160, 255, 0.24);
 }
 
+.brand-badge--image {
+  display: block;
+  object-fit: cover;
+  overflow: hidden;
+  background: transparent;
+}
+
 .topnav {
   flex: 1;
 }
@@ -97,7 +104,9 @@
 }
 
 .home-hero__content h1 {
-  font-size: clamp(54px, 6vw, 82px);
+  max-width: 720px;
+  font-size: clamp(46px, 5.4vw, 70px);
+  line-height: 0.98;
 }
 
 .home-hero__content p {
@@ -301,6 +310,30 @@
   border-radius: clamp(22px, 3vw, 29px);
 }
 
+.hero-card,
+.application-hero {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.09), transparent 34%),
+    var(--ja-card);
+}
+
+.glass-card,
+.ja-profile-card,
+.ja-password-card,
+.ja-profile-form,
+.application-panel {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.glass-card:hover,
+.ja-profile-card:hover,
+.ja-password-card:hover,
+.ja-profile-form:hover,
+.application-panel:hover {
+  border-color: rgba(87, 81, 234, 0.2);
+}
+
 .service-image img {
   height: clamp(250px, 31vw, 360px);
 }
@@ -399,6 +432,14 @@
   .home-hero {
     grid-template-columns: 1fr;
   }
+
+  .application-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .application-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -457,7 +498,7 @@
 
   .home-hero__content h1 {
     margin-bottom: 14px;
-    font-size: clamp(44px, 17vw, 56px);
+    font-size: clamp(37px, 12vw, 48px);
     letter-spacing: -0.07em;
   }
 
@@ -573,5 +614,56 @@
   .buy-row .salary-tag {
     width: 100%;
     justify-content: center;
+  }
+
+  .hero-card,
+  .application-hero {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .hero-card .btn,
+  .application-back-link {
+    width: 100%;
+  }
+
+  .glass-card,
+  .ja-profile-card,
+  .ja-password-card,
+  .ja-profile-form,
+  .application-panel {
+    padding: 19px;
+    border-radius: 21px;
+  }
+
+  .application-hero {
+    flex-direction: column;
+  }
+
+  .application-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .application-summary-card {
+    min-height: 94px;
+    padding: 15px;
+    border-radius: 18px;
+  }
+
+  .application-panel-head,
+  .application-line-card__top,
+  .application-line-card__fields {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .application-line-card__image {
+    width: 100%;
+    height: 168px;
+  }
+
+  .application-bottom-actions .application-btn {
+    width: 100%;
   }
 }

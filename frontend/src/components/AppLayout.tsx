@@ -15,11 +15,11 @@ export const AppLayout = () => {
         {pagesMode && (
           <aside className={`data-status ${demoMode ? "data-status--demo" : "data-status--live"}`}>
             <span className="data-status__dot" />
-            <strong>{demoMode ? "Демо-версия" : "Онлайн-данные"}</strong>
+            <strong>{demoMode ? "Демо-режим" : "Рабочая система"}</strong>
             <span>
               {demoMode
-                ? "Интерфейс полностью доступен на тестовых данных."
-                : `Подключено к API: ${apiHost}`}
+                ? "Примеры вакансий демонстрируют сервис доступного трудоустройства."
+                : `Защищённое подключение к данным: ${apiHost}`}
             </span>
           </aside>
         )}

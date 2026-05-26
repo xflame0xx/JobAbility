@@ -118,14 +118,13 @@ export const ApplicationsPage = () => {
   return (
     <main className="applications-page">
       <section className="ja-page-head applications-head">
-        <span className="ja-section-label">Заявки</span>
+        <span className="ja-section-label">Трудоустройство</span>
 
         <h1>{isModerator ? "Все заявки" : "Мои заявки"}</h1>
 
         <p>
-          Отслеживайте заявки, проверяйте их статус, открывайте подробную
-          информацию и выполняйте доступные действия в зависимости от роли
-          пользователя.
+          Отслеживайте обращения по выбранным вакансиям и этап их
+          рассмотрения работодателем и модератором сервиса.
         </p>
       </section>
 

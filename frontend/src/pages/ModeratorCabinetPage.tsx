@@ -147,7 +147,11 @@ export const ModeratorCabinetPage = ({ user }: ModeratorCabinetPageProps) => {
       <section className="hero-card">
         <div>
           <span className="eyebrow">Кабинет модератора</span>
-          <h1 className="page-title">Модерация вакансий и завершение заявок</h1>
+          <h1 className="page-title">Контроль доступных вакансий и заявок</h1>
+          <p className="muted">
+            Проверяйте, что работодатели указали условия адаптации, а заявки
+            соискателей обрабатываются корректно.
+          </p>
         </div>
       </section>
 

@@ -78,15 +78,14 @@ export default defineConfig(({ mode }) => {
         injectRegister: "auto",
 
         includeAssets: [
-          "favicon.svg",
-          "icons.svg",
+          "jobability-mark.svg",
         ],
 
         manifest: {
           name: "JobAbility",
           short_name: "JobAbility",
           description:
-            "SPA-приложение для просмотра вакансий и формирования заявок.",
+            "Система трудоустройства для людей с ограниченными возможностями.",
           theme_color: "#5751ea",
           background_color: "#f5f7fc",
           display: "standalone",
@@ -96,7 +95,7 @@ export default defineConfig(({ mode }) => {
           start_url: base,
           icons: [
             {
-              src: `${base}favicon.svg`,
+              src: `${base}jobability-mark.svg`,
               sizes: "any",
               type: "image/svg+xml",
               purpose: "any maskable",

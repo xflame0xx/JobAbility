@@ -152,7 +152,7 @@ const ApplicationLineEditor = ({
             <img src={imageUrl} alt={vacancyTitle} />
           ) : (
             <div className="application-line-card__placeholder">
-              Нет изображения
+              Фото вакансии не добавлено
             </div>
           )}
         </div>
@@ -469,13 +469,12 @@ export const ApplicationDetailPage = () => {
     <main className="application-detail-page">
       <section className="application-hero">
         <div>
-          <p className="application-kicker">Заявка пользователя</p>
+          <p className="application-kicker">Отклик на работу</p>
           <h1>Заявка №{application.id}</h1>
 
           <p className="application-subtitle">
-            Заявка открыта по ID: <strong>/applications/{application.id}</strong>.
-            В статусе черновика соискатель может редактировать анкету и строки
-            m-m связи.
+            Здесь собраны данные соискателя и выбранные вакансии. Пока заявка
+            находится в черновике, её можно дополнить перед отправкой.
           </p>
         </div>
 
@@ -678,8 +677,8 @@ export const ApplicationDetailPage = () => {
         <article className="application-panel">
           <div className="application-panel-head">
             <div>
-              <p className="application-kicker">M-M связь</p>
-              <h2>Состав заявки</h2>
+              <p className="application-kicker">Выбранная работа</p>
+              <h2>Вакансии в заявке</h2>
             </div>
 
             <span className="application-readonly-badge">

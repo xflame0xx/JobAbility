@@ -1,6 +1,8 @@
-from django.test import SimpleTestCase, tag
+from django.core.management import call_command
+from django.test import SimpleTestCase, TestCase, tag
 
-from core.models import transliterate_to_latin
+from core.management.commands.seed_demo_vacancies import DEMO_VACANCIES
+from core.models import Vacancy, transliterate_to_latin
 from core.services import parse_date
 
 
@@ -37,3 +39,24 @@ class TransliterationUnitTests(SimpleTestCase):
 
     def test_returns_safe_fallback_for_symbols_only(self):
         self.assertEqual(transliterate_to_latin("!!!"), "file")
+
+
+@tag("unit", "business_logic")
+class SeedDemoVacanciesTests(TestCase):
+    def test_creates_thirteen_published_vacancies_without_images(self):
+        call_command("seed_demo_vacancies", verbosity=0)
+
+        vacancies = Vacancy.objects.filter(creator__username="JobAbility Partners")
+
+        self.assertEqual(vacancies.count(), len(DEMO_VACANCIES))
+        self.assertEqual(vacancies.filter(is_active=True).count(), 13)
+        self.assertEqual(vacancies.exclude(image="").count(), 0)
+
+    def test_is_idempotent(self):
+        call_command("seed_demo_vacancies", verbosity=0)
+        call_command("seed_demo_vacancies", verbosity=0)
+
+        self.assertEqual(
+            Vacancy.objects.filter(creator__username="JobAbility Partners").count(),
+            13,
+        )

@@ -115,9 +115,10 @@ export const EmployerCabinetPage = ({ user }: EmployerCabinetPageProps) => {
       <section className="hero-card">
         <div>
           <span className="eyebrow">Кабинет работодателя</span>
-          <h1 className="page-title">Создавайте вакансии и смотрите отклики</h1>
+          <h1 className="page-title">Предлагайте работу без барьеров</h1>
           <p className="muted">
-            Каждая новая вакансия сначала отправляется на модерацию.
+            Укажите доступные условия рабочего места. Каждая новая вакансия
+            проходит модерацию перед публикацией.
           </p>
         </div>
 
@@ -219,7 +220,7 @@ export const EmployerCabinetPage = ({ user }: EmployerCabinetPageProps) => {
               </div>
 
               <div className="field">
-                <label>Поддержка</label>
+                <label>Доступные условия</label>
                 <input
                   placeholder="Адаптированное рабочее место и т.д."
                   value={form.disability_support}

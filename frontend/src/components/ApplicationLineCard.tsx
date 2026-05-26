@@ -105,7 +105,7 @@ export const ApplicationLineCard = ({
               disabled={saving}
               onClick={() => onToggleMain(line)}
             >
-              2. Изменить m-m: основная
+              Сделать основной вакансией
             </button>
 
             <button
@@ -114,7 +114,7 @@ export const ApplicationLineCard = ({
               disabled={saving}
               onClick={() => onMoveUp(line)}
             >
-              3. Изменить m-m: выше
+              Поднять выше
             </button>
 
             <button
@@ -123,7 +123,7 @@ export const ApplicationLineCard = ({
               disabled={saving}
               onClick={() => onMoveDown(line)}
             >
-              4. Изменить m-m: ниже
+              Опустить ниже
             </button>
 
             <button
@@ -132,7 +132,7 @@ export const ApplicationLineCard = ({
               disabled={saving}
               onClick={() => onDelete(line)}
             >
-              5. Удалить m-m строку
+              Удалить вакансию
             </button>
           </div>
         )}

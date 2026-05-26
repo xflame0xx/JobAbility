@@ -34,11 +34,15 @@ export const AppNavbar = () => {
     <header className={`topbar ${menuOpen ? "topbar--open" : ""}`}>
       <div className="topbar__head">
         <Link to={ROUTES.HOME} className="brand">
-          <span className="brand-badge">JA</span>
+          <img
+            className="brand-badge brand-badge--image"
+            src={`${import.meta.env.BASE_URL}jobability-mark.svg`}
+            alt=""
+          />
 
           <span className="brand-text">
             <strong className="brand-name">JobAbility</strong>
-            <small className="brand-sub">Платформа вакансий и откликов</small>
+            <small className="brand-sub">Трудоустройство без барьеров</small>
           </span>
         </Link>
 

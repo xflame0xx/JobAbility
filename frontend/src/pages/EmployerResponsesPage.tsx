@@ -60,6 +60,10 @@ export const EmployerResponsesPage = ({ user }: EmployerResponsesPageProps) => {
         <div>
           <span className="eyebrow">Работодатель</span>
           <h1 className="page-title">Отклики на ваши вакансии</h1>
+          <p className="muted">
+            Рассматривайте заявки кандидатов и помогайте подобрать комфортные
+            условия трудоустройства.
+          </p>
         </div>
 
         <div>

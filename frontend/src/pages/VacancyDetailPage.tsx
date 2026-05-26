@@ -173,7 +173,7 @@ export const VacancyDetailPage = ({ user }: VacancyDetailPageProps) => {
             </p>
 
             <p>
-              <b>Поддержка:</b> {vacancy.disability_support || "—"}
+              <b>Доступные условия:</b> {vacancy.disability_support || "Не указаны"}
             </p>
           </div>
 

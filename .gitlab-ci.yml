@@ -74,4 +74,5 @@ deploy:
     - kubectl -n jobability rollout status deployment/prometheus --timeout=180s
     - kubectl -n jobability rollout status deployment/grafana --timeout=180s
     - kubectl -n jobability rollout status deployment/adminer --timeout=120s
+    - kubectl -n jobability exec deployment/backend -- python manage.py seed_demo_vacancies
     - kubectl -n jobability get pods,svc,ingress,configmap,pvc

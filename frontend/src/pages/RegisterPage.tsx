@@ -44,10 +44,10 @@ export const RegisterPage = () => {
     <section className="ja-auth-screen ja-auth-screen--register">
       <div className="ja-auth-info">
         <span className="ja-section-label">Регистрация</span>
-        <h1>Начните поиск без барьеров</h1>
+        <h1>Создайте профиль без барьеров</h1>
         <p>
-          Создайте профиль соискателя для откликов или аккаунт работодателя,
-          чтобы публиковать вакансии и находить специалистов.
+          Соискателям доступен поиск подходящей работы, а работодателям —
+          публикация вакансий с описанием адаптации рабочего места.
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export const RegisterPage = () => {
         </div>
 
         <div className="field">
-          <label>Username</label>
+            <label>Логин</label>
           <input
             value={form.username}
             required
@@ -83,7 +83,7 @@ export const RegisterPage = () => {
         </div>
 
         <div className="field">
-          <label>Email</label>
+            <label>Email для связи</label>
           <input
             type="email"
             value={form.email}
