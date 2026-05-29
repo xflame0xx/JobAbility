@@ -53,7 +53,7 @@ const toErrorMessage = (error: unknown) =>
 
 export const fetchApplicationsThunk = createAsyncThunk<
   ApplicationListItem[],
-  void,
+  { silent?: boolean } | void,
   { state: { applications: ApplicationsState }; rejectValue: string }
 >("applications/fetchApplications", async (_, { getState, rejectWithValue }) => {
   const { status, dateFrom, dateTo } = getState().applications.appliedFilters;
@@ -199,9 +199,11 @@ const applicationsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchApplicationsThunk.pending, (state) => {
-        state.listLoading = true;
-        state.error = "";
+      .addCase(fetchApplicationsThunk.pending, (state, action) => {
+        if (!action.meta.arg?.silent) {
+          state.listLoading = true;
+          state.error = "";
+        }
       })
       .addCase(fetchApplicationsThunk.fulfilled, (state, action) => {
         state.listLoading = false;
@@ -210,7 +212,9 @@ const applicationsSlice = createSlice({
       })
       .addCase(fetchApplicationsThunk.rejected, (state, action) => {
         state.listLoading = false;
-        state.error = action.payload || "Не удалось загрузить заявки";
+        if (!action.meta.arg?.silent) {
+          state.error = action.payload || "Не удалось загрузить заявки";
+        }
       })
       .addCase(fetchApplicationByIdThunk.pending, (state) => {
         state.detailLoading = true;

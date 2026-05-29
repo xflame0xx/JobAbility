@@ -65,7 +65,7 @@ export const ApplicationsPage = () => {
     }
 
     const timerId = window.setInterval(() => {
-      dispatch(fetchApplicationsThunk());
+      dispatch(fetchApplicationsThunk({ silent: true }));
     }, 5000);
 
     return () => window.clearInterval(timerId);
