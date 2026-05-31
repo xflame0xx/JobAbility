@@ -18,7 +18,6 @@ export const ROUTES = {
   MODERATOR_CABINET: "/cabinet/moderator",
 
   SWAGGER: "/swagger/",
-  ADMIN: "/admin/",
 };
 
 export const buildVacancyUrl = (id: number | string) => {

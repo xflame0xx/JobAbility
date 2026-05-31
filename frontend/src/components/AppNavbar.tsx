@@ -19,7 +19,8 @@ export const AppNavbar = () => {
   const tauriGuestMode = isTauriGuestMode();
   const mockMode = isMockMode();
 
-  const showBackendLinks = !tauriGuestMode && !mockMode;
+  const showSwaggerLink =
+    !tauriGuestMode && !mockMode && user?.role === "moderator";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -90,11 +91,8 @@ export const AppNavbar = () => {
             </>
           )}
 
-          {showBackendLinks && (
-            <>
-              <a href={getBackendPageUrl(ROUTES.SWAGGER)}>Swagger</a>
-              <a href={getBackendPageUrl(ROUTES.ADMIN)}>Admin</a>
-            </>
+          {showSwaggerLink && (
+            <a href={getBackendPageUrl(ROUTES.SWAGGER)}>Swagger</a>
           )}
         </nav>
 
