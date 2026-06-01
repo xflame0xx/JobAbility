@@ -10,6 +10,7 @@ import "./styles/vacancy.css";
 import "./styles/applications.css";
 import "./styles/application.css";
 import "./styles/cabinet.css";
+import "./styles/analytics.css";
 import "./styles/responsive.css";
 import "./index.css";
 import "./styles/polish.css";

@@ -17,6 +17,7 @@ import { ApplicantCabinetPage } from "./pages/ApplicantCabinetPage";
 import { EmployerCabinetPage } from "./pages/EmployerCabinetPage";
 import { EmployerResponsesPage } from "./pages/EmployerResponsesPage";
 import { ModeratorCabinetPage } from "./pages/ModeratorCabinetPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 import { ROUTES } from "./routes";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
@@ -68,6 +69,7 @@ const App = () => {
           />
 
           <Route path={ROUTES.VACANCIES} element={<VacanciesPage />} />
+          <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
 
           <Route
             path={ROUTES.VACANCY_DETAIL}

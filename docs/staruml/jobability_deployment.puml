@@ -1,0 +1,137 @@
+@startuml
+title JobAbility - deployment diagram: VM, k3s, frontend, backend, storages and CI/CD
+
+!theme plain
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+skinparam node {
+  BackgroundColor #F8FAFC
+  BorderColor #475569
+}
+skinparam cloud {
+  BackgroundColor #FFF7ED
+  BorderColor #EA580C
+}
+skinparam database {
+  BackgroundColor #ECFDF5
+  BorderColor #059669
+}
+skinparam queue {
+  BackgroundColor #ECFDF5
+  BorderColor #059669
+}
+skinparam component {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+}
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #64748B
+}
+
+legend right
+  <b>Deployment scope</b>
+  User traffic: Browser -> Traefik -> Frontend -> Backend.
+  Data layer: PostgreSQL, Redis, MinIO and PVC volumes.
+  Delivery path: GitLab CI/CD -> Runner -> Docker/k3s.
+  Public demo access can be provided by Cloudflare Quick Tunnel.
+endlegend
+
+node "User device" as UserDevice {
+  artifact "Browser\nDesktop or mobile" as Browser
+}
+
+cloud "Cloudflare Quick Tunnel\noptional public demo URL" as Cloudflare {
+  component "cloudflared tunnel" as Tunnel
+}
+
+cloud "GitLab SaaS" as GitLab {
+  component "Repository\nxflame0xx1/jobability" as Repo
+  component "CI/CD pipeline\nbuild -> test -> upload -> deploy" as Pipeline
+}
+
+node "Virtual machine\nUbuntu 22.04\n192.168.56.19" as VM {
+  component "GitLab Runner\nshell executor" as Runner
+  component "Docker Engine\nimage build/load" as DockerEngine
+
+  node "k3s Kubernetes cluster\nnamespace: jobability" as K3S {
+    node "Ingress layer\nkube-system" as Entry {
+      component "Traefik\nLoadBalancer :80/:443" as Traefik
+      artifact "Ingress jobability\n/ -> frontend:80" as Ingress
+    }
+
+    node "frontend pod\nDeployment/frontend" as FrontendPod {
+      component "Nginx static web server\nport 80" as Nginx
+      artifact "React SPA bundle\npages, CSS, assets" as ReactBundle
+    }
+
+    node "backend pod\nDeployment/backend" as BackendPod {
+      component "Django REST API\nGunicorn, port 8000" as DjangoApi
+      component "API domains\nAuth, Vacancy, Application,\nProfile, Metrics" as BackendDomains
+    }
+
+    database "PostgreSQL pod\nService postgres:5432\nPVC postgres-data" as Postgres
+    queue "Redis pod\nService redis:6379\nPVC redis-data" as Redis
+
+    node "MinIO pod\nService minio:9000\nConsole NodePort 30901\nPVC minio-data" as MinioPod {
+      component "MinIO S3 API\nbucket: jobability" as MinioApi
+      component "MinIO Console" as MinioConsole
+    }
+
+    node "Monitoring" as Monitoring {
+      component "Prometheus\nNodePort 30900\nPVC prometheus-data" as Prometheus
+      component "Grafana\nNodePort 30300\nPVC grafana-data" as Grafana
+    }
+
+    node "Administration" as AdminTools {
+      component "Adminer\nNodePort 30092" as Adminer
+    }
+
+    artifact "ConfigMap\njobability-config" as ConfigMap
+    artifact "Secrets\njobability-secrets\njobability-monitoring-secrets" as Secrets
+    artifact "Persistent volumes\npostgres, redis, minio,\nbackend-media, monitoring" as Volumes
+  }
+}
+
+Browser --> Tunnel : HTTPS\ntrycloudflare.com
+Tunnel --> Traefik : HTTP\n192.168.56.19:80
+Browser --> Traefik : HTTP\nlocal network
+
+Traefik --> Ingress : routes host/path
+Ingress --> Nginx : HTTP :80\nService frontend
+Nginx --> ReactBundle : static files
+ReactBundle --> DjangoApi : HTTP JSON\n/api/*
+Nginx --> MinioApi : HTTP\n/media/* proxy
+
+DjangoApi --> BackendDomains : internal dispatch
+DjangoApi --> Postgres : TCP 5432\nPostgreSQL protocol
+DjangoApi --> Redis : TCP 6379\nRedis protocol
+DjangoApi --> MinioApi : HTTP :9000\nS3-compatible API
+DjangoApi --> ConfigMap : envFrom\nnon-secret config
+DjangoApi --> Secrets : envFrom\nsecret values
+
+Postgres --> Volumes : persistent data
+Redis --> Volumes : persistent cache
+MinioApi --> Volumes : object storage
+Prometheus --> Volumes : metrics storage
+
+Prometheus --> DjangoApi : HTTP GET /metrics
+Grafana --> Prometheus : HTTP datasource
+Adminer --> Postgres : TCP 5432
+
+Repo --> Pipeline : push to main
+Pipeline --> Runner : GitLab job\nHTTPS
+Runner --> DockerEngine : docker build\nsave/load images
+Runner --> K3S : kubectl apply\nkubectl set image
+DockerEngine --> K3S : import image\ncontainerd/k3s
+
+@enduml

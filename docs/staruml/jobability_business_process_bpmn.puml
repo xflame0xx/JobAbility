@@ -1,0 +1,82 @@
+@startuml
+title JobAbility - business process overview
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  FontColor #0F172A
+  DiamondBackgroundColor #FEF3C7
+  DiamondBorderColor #D97706
+}
+skinparam partition {
+  BackgroundColor #FFFFFF
+  BorderColor #CBD5E1
+  FontColor #0F172A
+}
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+
+legend right
+  Backup PlantUML view of the same BPMN scenario.
+  Main editable BPMN file for bpmn.io:
+  jobability_business_process.bpmn
+endlegend
+
+|Работодатель|
+start
+:Регистрация / вход работодателя;
+:Открыть кабинет работодателя;
+:Заполнить вакансию и материалы;
+:Отправить вакансию на публикацию;
+
+|Сервис JobAbility|
+:Проверить авторизацию и роль employer;
+:Сохранить вакансию со статусом PENDING;
+if (Вакансия корректна?) then (да)
+  :Опубликовать вакансию APPROVED;
+  :Сбросить кеш каталога Redis;
+else (нет)
+  :Отклонить вакансию и записать причину;
+  |Работодатель|
+  :Получить причину отклонения;
+  stop
+endif
+
+|Соискатель|
+:Открыть каталог вакансий;
+:Найти и отфильтровать вакансии;
+:Открыть карточку вакансии;
+:Регистрация / вход соискателя;
+:Добавить вакансию в черновик заявки;
+:Заполнить профиль, контакты и письмо;
+:Сформировать заявку;
+
+|Сервис JobAbility|
+:Проверить авторизацию и роль applicant;
+:Сохранить строки заявки и пересчитать сумму;
+:Перевести заявку в статус FORMED;
+:Показать отклик работодателю;
+
+|Работодатель|
+:Открыть отклики на вакансии;
+:Изучить заявку кандидата;
+:Принять решение по кандидату;
+
+|Сервис JobAbility|
+if (Кандидат подходит?) then (да)
+  :Установить статус FINISHED;
+else (нет)
+  :Установить статус REJECTED;
+endif
+:Сохранить итоговый статус заявки;
+
+|Соискатель|
+:Посмотреть итоговый статус в кабинете;
+stop
+
+@enduml

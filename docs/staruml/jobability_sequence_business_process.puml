@@ -1,0 +1,76 @@
+@startuml
+title JobAbility - Sequence diagram: application business process
+
+skinparam backgroundColor #F7F9FD
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam sequence {
+  ArrowColor #334155
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #F8FAFC
+  ParticipantBorderColor #2563EB
+  ParticipantBackgroundColor #EFF6FF
+  ParticipantFontColor #0F172A
+  ActorBorderColor #2563EB
+  ActorBackgroundColor #EFF6FF
+  BoxBorderColor #CBD5E1
+  BoxBackgroundColor #FFFFFF
+}
+
+actor "Applicant" as Applicant
+participant "Applicant frontend\nReact SPA" as ApplicantFrontend
+participant "AuthDomain" as AuthDomain
+participant "VacancyDomain" as VacancyDomain
+participant "ApplicationDomain" as ApplicationDomain
+participant "ApplicationLineDomain" as ApplicationLineDomain
+participant "Moderator frontend\nsecond UI" as ModeratorFrontend
+actor "Moderator" as Moderator
+
+== Authentication ==
+Applicant -> ApplicantFrontend: openLoginPage()
+ApplicantFrontend -> AuthDomain: POST /api/users/login/(username, password)
+AuthDomain --> ApplicantFrontend: 200 OK(session, userId, role=applicant)
+ApplicantFrontend -> AuthDomain: GET /api/users/me/(session)
+AuthDomain --> ApplicantFrontend: 200 OK(currentUser)
+
+== Service catalog and empty cart state ==
+Applicant -> ApplicantFrontend: openServicesList(filters)
+ApplicantFrontend -> VacancyDomain: GET /api/vacancies/(filters, page)
+VacancyDomain --> ApplicantFrontend: 200 OK(vacancies[])
+ApplicantFrontend -> ApplicationDomain: GET /api/applications/cart/(userId)
+ApplicationDomain --> ApplicantFrontend: 200 OK(draft=null, cartIcon=empty, linesCount=0)
+
+== Add service to draft application ==
+Applicant -> ApplicantFrontend: addServiceToApplication(vacancyId)
+ApplicantFrontend -> ApplicationLineDomain: POST /api/application-lines/(vacancyId)
+ApplicationLineDomain --> ApplicantFrontend: 201 Created(applicationId, lineId, vacancyId)
+ApplicantFrontend -> ApplicationDomain: GET /api/applications/cart/(userId)
+ApplicationDomain --> ApplicantFrontend: 200 OK(draftApplicationId, status=draft, lines[])
+
+== Draft application editing and submission ==
+Applicant -> ApplicantFrontend: editDraftApplication(formData)
+ApplicantFrontend -> ApplicationDomain: PUT /api/applications/{id}/(applicationId, applicantProfile, comment)
+ApplicationDomain --> ApplicantFrontend: 200 OK(applicationId, status=draft, updatedFields)
+Applicant -> ApplicantFrontend: formApplication(applicationId)
+ApplicantFrontend -> ApplicationDomain: PUT /api/applications/{id}/form/(applicationId)
+ApplicationDomain --> ApplicantFrontend: 200 OK(applicationId, status=pendingModeration)
+
+== Applicant application list ==
+ApplicantFrontend -> ApplicationDomain: GET /api/applications/(owner=me, page)
+ApplicationDomain --> ApplicantFrontend: 200 OK(applications[], statusCounters)
+
+== Moderator review from second frontend ==
+Moderator -> ModeratorFrontend: openModeratorCabinet()
+ModeratorFrontend -> AuthDomain: POST /api/users/login/(username, password)
+AuthDomain --> ModeratorFrontend: 200 OK(session, userId, role=moderator)
+ModeratorFrontend -> ApplicationDomain: GET /api/applications/(status=pendingModeration)
+ApplicationDomain --> ModeratorFrontend: 200 OK(pendingApplications[])
+Moderator -> ModeratorFrontend: completeModeration(applicationId, decision)
+ModeratorFrontend -> ApplicationDomain: PUT /api/applications/{id}/moderate/(applicationId, decision=approved, moderatorId)
+ApplicationDomain --> ModeratorFrontend: 200 OK(applicationId, status=completed, moderationResult)
+
+== Applications list with calculation ==
+ApplicantFrontend -> ApplicationDomain: GET /api/applications/(owner=me, includeCalculated=true)
+ApplicationDomain --> ApplicantFrontend: 200 OK(applications[], calculatedStatusCounters, totals)
+
+@enduml

@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "JobAbility Guest",
+  "productName": "JobAbility",
   "version": "0.1.0",
-  "identifier": "ru.jobability.guest",
+  "identifier": "ru.jobability.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://127.0.0.1:3000",
@@ -12,9 +12,12 @@
   "app": {
     "windows": [
       {
-        "title": "JobAbility Guest",
-        "width": 800,
-        "height": 600,
+        "title": "JobAbility",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 390,
+        "minHeight": 640,
+        "center": true,
         "resizable": true,
         "fullscreen": false
       }

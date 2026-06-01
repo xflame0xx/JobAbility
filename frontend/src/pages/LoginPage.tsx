@@ -64,15 +64,15 @@ export const LoginPage = () => {
           <div className="ja-demo-box">
             <div className="ja-demo-box__title">Посмотреть работу сервиса</div>
             <p className="ja-demo-box__hint">
-              В демо-режиме можно открыть кабинет модератора и ознакомиться с
-              процессом проверки вакансий.
+              Откройте кабинет модератора и ознакомьтесь с процессом проверки
+              вакансий.
             </p>
             <button
               type="button"
               className="ja-button ja-button--light"
               onClick={() => setForm(DEMO_MODERATOR)}
             >
-              Заполнить демо-вход
+              Заполнить данные для входа
             </button>
           </div>
         )}

@@ -67,6 +67,7 @@ export const AppNavbar = () => {
             Главная
           </NavLink>
           <NavLink to={ROUTES.VACANCIES}>Вакансии</NavLink>
+          <NavLink to={ROUTES.ANALYTICS}>Аналитика</NavLink>
 
           {!tauriGuestMode && user && (
             <>

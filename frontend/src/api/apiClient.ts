@@ -118,7 +118,7 @@ export const apiRequest = async <T>(
     } catch {
       message =
         response.status === 404 && import.meta.env.VITE_APP_TARGET === "pages"
-          ? "API не подключен. Сейчас доступен демонстрационный режим."
+          ? "Данные платформы временно недоступны."
           : `Не удалось выполнить запрос (${response.status}).`;
     }
 

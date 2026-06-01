@@ -1,0 +1,326 @@
+@startuml
+title JobAbility - class diagram: frontend pages, API clients and backend domains
+
+!theme plain
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam nodesep 55
+skinparam ranksep 65
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+skinparam package {
+  BorderColor #CBD5E1
+  FontColor #0F172A
+  FontStyle bold
+}
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #2563EB
+  FontColor #0F172A
+  HeaderBackgroundColor #EFF6FF
+}
+
+legend bottom
+  Frontend pages are shown as real React pages.
+  Page-to-API dependencies are grouped by scenario to keep arrows readable.
+  Backend is shown as API domains with HTTP methods; database models are hidden.
+endlegend
+
+package "Frontend pages (React)" as FE {
+  package "Layout and routing" {
+    class AppLayout <<Layout>> {
+      +renderNavigation()
+      +renderOutlet()
+      +showCurrentUser()
+    }
+
+    class ProtectedRoute <<Guard>> {
+      +checkAuthentication()
+      +checkRole(roles)
+      +redirectToLogin()
+    }
+  }
+
+  package "Public and auth pages" {
+    class HomePage <<Page>> {
+      +route: /
+      +renderWelcome()
+      +navigateToVacancies()
+    }
+
+    class VacanciesPage <<Page>> {
+      +route: /vacancies
+      +fetchVacancies(filters)
+      +fetchApplicationCart()
+      +applyFilters()
+    }
+
+    class VacancyDetailPage <<Page>> {
+      +route: /vacancies/:id
+      +fetchVacancyById(id)
+      +addVacancyToApplication(id)
+    }
+
+    class LoginPage <<Page>> {
+      +route: /login
+      +loginUser(payload)
+    }
+
+    class RegisterPage <<Page>> {
+      +route: /register
+      +registerUser(payload)
+      +selectRole(role)
+    }
+  }
+
+  package "Applicant pages" {
+    class ApplicationsPage <<Page>> {
+      +route: /applications
+      +fetchApplications(filters)
+      +moderateApplication(id, action)
+    }
+
+    class ApplicationDetailPage <<Page>> {
+      +route: /applications/:id
+      +fetchApplicationById(id)
+      +updateApplication(id)
+      +updateApplicationLine(payload)
+      +deleteApplicationLine(vacancyId)
+      +formApplication(id)
+      +deleteApplication(id)
+    }
+
+    class ApplicantCabinetPage <<Page>> {
+      +route: /cabinet/applicant
+      +fetchApplicantProfile()
+      +updateApplicantProfile(profile)
+      +changePassword(payload)
+    }
+  }
+
+  package "Employer pages" {
+    class EmployerCabinetPage <<Page>> {
+      +route: /cabinet/employer
+      +fetchEmployerCabinet()
+      +createEmployerVacancy(formData)
+    }
+
+    class EmployerResponsesPage <<Page>> {
+      +route: /cabinet/employer/responses
+      +fetchEmployerResponses()
+    }
+  }
+
+  package "Moderator pages" {
+    class ModeratorCabinetPage <<Page>> {
+      +route: /cabinet/moderator
+      +fetchModeratorCabinet()
+      +moderateVacancy(id, action)
+      +moderateApplication(id, action)
+    }
+  }
+}
+
+package "Page -> API dependency groups" as Dependencies {
+  class PublicCatalogFlow <<DependencyGroup>> {
+    +HomePage
+    +VacanciesPage
+    +VacancyDetailPage
+    --
+    +VacancyApi
+    +ApplicationApi
+  }
+
+  class AuthFlow <<DependencyGroup>> {
+    +LoginPage
+    +RegisterPage
+    +AppLayout
+    --
+    +AuthApi
+  }
+
+  class ApplicantFlow <<DependencyGroup>> {
+    +ApplicantCabinetPage
+    +ApplicationsPage
+    +ApplicationDetailPage
+    --
+    +AuthApi
+    +CabinetApi
+    +ApplicationApi
+  }
+
+  class EmployerFlow <<DependencyGroup>> {
+    +EmployerCabinetPage
+    +EmployerResponsesPage
+    --
+    +CabinetApi
+  }
+
+  class ModeratorFlow <<DependencyGroup>> {
+    +ModeratorCabinetPage
+    +ApplicationsPage
+    +ApplicationDetailPage
+    --
+    +CabinetApi
+    +ApplicationApi
+  }
+}
+
+package "Frontend API clients" as Clients {
+  class ApiClient <<BaseClient>> {
+    +getApiBaseUrl()
+    +buildApiUrl(path)
+    +apiRequest(path, options)
+    +sendCredentials()
+  }
+
+  class AuthApi <<Client>> {
+    +getCurrentUser()
+    +loginUser(payload)
+    +registerUser(payload)
+    +logoutUser()
+    +changePassword(payload)
+  }
+
+  class VacancyApi <<Client>> {
+    +fetchVacancies(filters)
+    +fetchVacancyById(id)
+  }
+
+  class ApplicationApi <<Client>> {
+    +fetchApplicationCart()
+    +addVacancyToApplication(vacancyId)
+    +fetchApplications(filters)
+    +fetchApplicationById(id)
+    +updateApplication(id, payload)
+    +formApplication(id)
+    +moderateApplication(id, action)
+    +deleteApplication(id)
+  }
+
+  class CabinetApi <<Client>> {
+    +fetchApplicantProfile()
+    +updateApplicantProfile(profile)
+    +fetchEmployerCabinet()
+    +createEmployerVacancy(formData)
+    +fetchEmployerResponses()
+    +fetchModeratorCabinet()
+    +moderateVacancy(id, action)
+  }
+}
+
+package "Backend API domains (Django REST)" as Backend {
+  class AuthDomain <<BackendDomain>> {
+    +GET /api/users/me/
+    +POST /api/users/register/
+    +POST /api/users/login/
+    +POST /api/users/logout/
+    +PUT /api/users/password/
+  }
+
+  class VacancyDomain <<BackendDomain>> {
+    +GET /api/vacancies/
+    +POST /api/vacancies/
+    +GET /api/vacancies/{id}/
+    +GET /api/vacancies/mine/
+    +GET /api/vacancies/pending/
+    +PUT /api/vacancies/{id}/moderate/
+  }
+
+  class ApplicationDomain <<BackendDomain>> {
+    +GET /api/applications/cart/
+    +GET /api/applications/
+    +GET /api/applications/{id}/
+    +PUT /api/applications/{id}/
+    +PUT /api/applications/{id}/form/
+    +PUT /api/applications/{id}/moderate/
+    +DELETE /api/applications/{id}/delete/
+  }
+
+  class ApplicationLineDomain <<BackendDomain>> {
+    +POST /api/application-lines/
+    +PUT /api/application-lines/
+    +DELETE /api/application-lines/
+  }
+
+  class ProfileDomain <<BackendDomain>> {
+    +GET /api/users/profile/
+    +PUT /api/users/profile/
+  }
+
+  class EmployerResponsesDomain <<BackendDomain>> {
+    +GET /api/applications/employer-responses/
+  }
+
+  class SystemDomain <<BackendDomain>> {
+    +GET /swagger/
+    +GET /api/schema/
+    +GET /metrics/
+    +GET /admin/
+  }
+}
+
+FE -[hidden]right- Dependencies
+Dependencies -[hidden]right- Clients
+Clients -[hidden]right- Backend
+
+AppLayout -[hidden]down- ProtectedRoute
+HomePage -[hidden]down- VacanciesPage
+VacanciesPage -[hidden]down- VacancyDetailPage
+VacancyDetailPage -[hidden]down- LoginPage
+LoginPage -[hidden]down- RegisterPage
+ApplicationsPage -[hidden]down- ApplicationDetailPage
+ApplicationDetailPage -[hidden]down- ApplicantCabinetPage
+EmployerCabinetPage -[hidden]down- EmployerResponsesPage
+ApplicantCabinetPage -[hidden]down- EmployerCabinetPage
+EmployerResponsesPage -[hidden]down- ModeratorCabinetPage
+
+PublicCatalogFlow -[hidden]down- AuthFlow
+AuthFlow -[hidden]down- ApplicantFlow
+ApplicantFlow -[hidden]down- EmployerFlow
+EmployerFlow -[hidden]down- ModeratorFlow
+
+AuthApi -[hidden]down- VacancyApi
+VacancyApi -[hidden]down- ApplicationApi
+ApplicationApi -[hidden]down- CabinetApi
+
+AuthDomain -[hidden]down- VacancyDomain
+VacancyDomain -[hidden]down- ApplicationDomain
+ApplicationDomain -[hidden]down- ApplicationLineDomain
+ApplicationLineDomain -[hidden]down- ProfileDomain
+ProfileDomain -[hidden]down- EmployerResponsesDomain
+EmployerResponsesDomain -[hidden]down- SystemDomain
+
+AuthApi --> ApiClient
+VacancyApi --> ApiClient
+ApplicationApi --> ApiClient
+CabinetApi --> ApiClient
+
+PublicCatalogFlow ..> VacancyApi
+PublicCatalogFlow ..> ApplicationApi
+AuthFlow ..> AuthApi
+ApplicantFlow ..> AuthApi
+ApplicantFlow ..> CabinetApi
+ApplicantFlow ..> ApplicationApi
+EmployerFlow ..> CabinetApi
+ModeratorFlow ..> CabinetApi
+ModeratorFlow ..> ApplicationApi
+
+AuthApi ==> AuthDomain : HTTP JSON
+VacancyApi ==> VacancyDomain : HTTP JSON / multipart
+ApplicationApi ==> ApplicationDomain : HTTP JSON
+ApplicationApi ==> ApplicationLineDomain : HTTP JSON
+CabinetApi ==> ProfileDomain : HTTP JSON
+CabinetApi ==> VacancyDomain : HTTP JSON / multipart
+CabinetApi ==> EmployerResponsesDomain : HTTP JSON
+CabinetApi ==> ApplicationDomain : HTTP JSON
+SystemDomain ..> AuthDomain : auth/session
+
+@enduml

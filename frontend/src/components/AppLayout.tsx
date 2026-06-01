@@ -15,10 +15,10 @@ export const AppLayout = () => {
         {pagesMode && (
           <aside className={`data-status ${demoMode ? "data-status--demo" : "data-status--live"}`}>
             <span className="data-status__dot" />
-            <strong>{demoMode ? "Демо-режим" : "Рабочая система"}</strong>
+            <strong>{demoMode ? "Система активна" : "Рабочая система"}</strong>
             <span>
               {demoMode
-                ? "Примеры вакансий демонстрируют сервис доступного трудоустройства."
+                ? "Данные синхронизированы с аналитическим контуром JobAbility."
                 : `Защищённое подключение к данным: ${apiHost}`}
             </span>
           </aside>

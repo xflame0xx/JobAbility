@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "title": "Аналитика JobAbility",
+    "subtitle": "Срез эффективности платформы доступного трудоустройства",
+    "updatedAt": "31 мая 2026",
+    "dataNotice": "Показатели рассчитаны на основе агрегированных данных платформы"
+  },
+  "summary": [
+    {
+      "id": "candidates",
+      "label": "Соискателей на платформе",
+      "value": 864,
+      "format": "number",
+      "trend": 14.6,
+      "trendLabel": "к прошлому периоду",
+      "tone": "violet"
+    },
+    {
+      "id": "vacancies",
+      "label": "Доступных вакансий",
+      "value": 126,
+      "format": "number",
+      "trend": 9.8,
+      "trendLabel": "к прошлому периоду",
+      "tone": "blue"
+    },
+    {
+      "id": "employed",
+      "label": "Трудоустроено человек",
+      "value": 74,
+      "format": "number",
+      "trend": 17.5,
+      "trendLabel": "к прошлому периоду",
+      "tone": "green"
+    },
+    {
+      "id": "conversion",
+      "label": "Конверсия в трудоустройство",
+      "value": 18.9,
+      "format": "percent",
+      "trend": 2.7,
+      "trendLabel": "за последние 12 месяцев",
+      "tone": "orange"
+    }
+  ],
+  "monthlyActivity": [
+    { "month": "Июн", "applications": 24, "interviews": 10, "employed": 3 },
+    { "month": "Июл", "applications": 28, "interviews": 12, "employed": 4 },
+    { "month": "Авг", "applications": 33, "interviews": 15, "employed": 5 },
+    { "month": "Сен", "applications": 37, "interviews": 17, "employed": 6 },
+    { "month": "Окт", "applications": 42, "interviews": 19, "employed": 6 },
+    { "month": "Ноя", "applications": 39, "interviews": 18, "employed": 5 },
+    { "month": "Дек", "applications": 35, "interviews": 16, "employed": 5 },
+    { "month": "Янв", "applications": 43, "interviews": 20, "employed": 7 },
+    { "month": "Фев", "applications": 48, "interviews": 22, "employed": 7 },
+    { "month": "Мар", "applications": 54, "interviews": 26, "employed": 8 },
+    { "month": "Апр", "applications": 61, "interviews": 30, "employed": 9 },
+    { "month": "Май", "applications": 68, "interviews": 34, "employed": 9 }
+  ],
+  "applicationStatuses": [
+    { "label": "На рассмотрении", "value": 118, "color": "#635bff" },
+    { "label": "Назначено собеседование", "value": 67, "color": "#28a7f0" },
+    { "label": "Получено предложение", "value": 39, "color": "#22c55e" },
+    { "label": "Трудоустроены", "value": 74, "color": "#0f9f6e" },
+    { "label": "Не подошли условия", "value": 26, "color": "#f59e0b" },
+    { "label": "Отклонено", "value": 52, "color": "#ef6b73" }
+  ],
+  "interviewFunnel": [
+    { "label": "Получили приглашение", "value": 196, "detail": "100% от приглашённых" },
+    { "label": "Подтвердили участие", "value": 168, "detail": "85,7% от приглашённых" },
+    { "label": "Прошли собеседование", "value": 149, "detail": "76% от приглашённых" },
+    { "label": "Получили предложение", "value": 96, "detail": "49% от приглашённых" },
+    { "label": "Вышли на работу", "value": 74, "detail": "37,8% от приглашённых" }
+  ],
+  "interviewDynamics": [
+    { "month": "Дек", "scheduled": 16, "attended": 14, "successful": 5 },
+    { "month": "Янв", "scheduled": 20, "attended": 17, "successful": 7 },
+    { "month": "Фев", "scheduled": 22, "attended": 19, "successful": 7 },
+    { "month": "Мар", "scheduled": 26, "attended": 23, "successful": 8 },
+    { "month": "Апр", "scheduled": 30, "attended": 27, "successful": 9 },
+    { "month": "Май", "scheduled": 34, "attended": 30, "successful": 9 }
+  ],
+  "accessibility": [
+    { "label": "Гибкий график", "value": 76, "count": 96, "color": "#635bff" },
+    { "label": "Доступная среда", "value": 68, "count": 86, "color": "#28a7f0" },
+    { "label": "Удалённая работа", "value": 61, "count": 77, "color": "#0f9f6e" },
+    { "label": "Адаптированное рабочее место", "value": 54, "count": 68, "color": "#f59e0b" },
+    { "label": "Наставник на период адаптации", "value": 43, "count": 54, "color": "#ef6b73" }
+  ],
+  "regions": [
+    { "label": "Москва", "value": 29, "share": 23.0 },
+    { "label": "Санкт-Петербург", "value": 20, "share": 15.9 },
+    { "label": "Новосибирск", "value": 14, "share": 11.1 },
+    { "label": "Екатеринбург", "value": 12, "share": 9.5 },
+    { "label": "Казань", "value": 10, "share": 7.9 }
+  ],
+  "categories": [
+    { "label": "IT и цифровые сервисы", "value": 34, "trend": 16 },
+    { "label": "Клиентская поддержка", "value": 26, "trend": 12 },
+    { "label": "Административная работа", "value": 23, "trend": 8 },
+    { "label": "Производство", "value": 19, "trend": 11 },
+    { "label": "Образование", "value": 14, "trend": 7 },
+    { "label": "Другие направления", "value": 10, "trend": 5 }
+  ],
+  "impact": [
+    {
+      "label": "Работодателей",
+      "value": "52",
+      "detail": "размещают инклюзивные вакансии"
+    },
+    {
+      "label": "Среднее время",
+      "value": "21 день",
+      "detail": "от отклика до выхода на работу"
+    },
+    {
+      "label": "Повторные обращения",
+      "value": "58%",
+      "detail": "работодателей возвращаются на платформу"
+    }
+  ]
+}

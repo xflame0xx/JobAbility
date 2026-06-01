@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1760" viewBox="0 0 2400 1760">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .system { fill: #fbfcff; stroke: #172033; stroke-width: 3; }
+      .section { fill: #ffffff; stroke: #5b6b82; stroke-width: 2.2; }
+      .section-tab { fill: #edf3ff; stroke: #5b6b82; stroke-width: 2.2; }
+      .uc { fill: #ffffff; stroke: #1f4f9c; stroke-width: 2.8; }
+      .uc-soft { fill: #f8fbff; stroke: #527cc1; stroke-width: 2.4; }
+      .uc-mod { fill: #fffaf2; stroke: #bd6b14; stroke-width: 2.6; }
+      .actor { fill: none; stroke: #172033; stroke-width: 3; stroke-linecap: round; }
+      .assoc { fill: none; stroke: #334155; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+      .dep { fill: none; stroke: #52657d; stroke-width: 2.2; stroke-dasharray: 10 8; marker-end: url(#arrow); }
+      .title { font: 700 34px Arial, sans-serif; fill: #111827; }
+      .section-title { font: 700 24px Arial, sans-serif; fill: #172033; }
+      .uc-text { font: 700 19px Arial, sans-serif; fill: #172033; text-anchor: middle; }
+      .actor-text { font: 700 22px Arial, sans-serif; fill: #172033; text-anchor: middle; }
+      .label { font: 20px Arial, sans-serif; fill: #334155; text-anchor: middle; }
+      .legend-head { font: 700 20px Arial, sans-serif; fill: #172033; }
+      .legend-text { font: 18px Arial, sans-serif; fill: #334155; }
+    </style>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M1,1 L13,7 L1,13" fill="none" stroke="#52657d" stroke-width="2"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2400" height="1760"/>
+  <rect class="system" x="350" y="45" width="1710" height="1635" rx="8"/>
+  <text class="title" x="1205" y="92" text-anchor="middle">JobAbility — система трудоустройства для людей с ограниченными возможностями</text>
+
+  <!-- Actors -->
+  <g transform="translate(125,210)">
+    <circle class="actor" cx="60" cy="32" r="25"/>
+    <path class="actor" d="M60 57 L60 142 M25 91 L95 91 M60 142 L25 195 M60 142 L96 195"/>
+    <text class="actor-text" x="60" y="238">Гость</text>
+  </g>
+  <g transform="translate(110,665)">
+    <circle class="actor" cx="60" cy="32" r="25"/>
+    <path class="actor" d="M60 57 L60 142 M25 91 L95 91 M60 142 L25 195 M60 142 L96 195"/>
+    <text class="actor-text" x="60" y="238">Соискатель</text>
+  </g>
+  <g transform="translate(2110,625)">
+    <circle class="actor" cx="60" cy="32" r="25"/>
+    <path class="actor" d="M60 57 L60 142 M25 91 L95 91 M60 142 L25 195 M60 142 L96 195"/>
+    <text class="actor-text" x="60" y="238">Работодатель</text>
+  </g>
+  <g transform="translate(2110,1175)">
+    <circle class="actor" cx="60" cy="32" r="25"/>
+    <path class="actor" d="M60 57 L60 142 M25 91 L95 91 M60 142 L25 195 M60 142 L96 195"/>
+    <text class="actor-text" x="60" y="238">Модератор</text>
+  </g>
+
+  <!-- Sections -->
+  <rect class="section-tab" x="395" y="130" width="410" height="58"/>
+  <rect class="section" x="395" y="175" width="1620" height="375"/>
+  <text class="section-title" x="415" y="165">Публичный интерфейс</text>
+
+  <rect class="section-tab" x="395" y="585" width="410" height="58"/>
+  <rect class="section" x="395" y="630" width="750" height="670"/>
+  <text class="section-title" x="415" y="620">Кабинет соискателя</text>
+
+  <rect class="section-tab" x="1185" y="585" width="410" height="58"/>
+  <rect class="section" x="1185" y="630" width="830" height="450"/>
+  <text class="section-title" x="1205" y="620">Кабинет работодателя</text>
+
+  <rect class="section-tab" x="1185" y="1125" width="410" height="58"/>
+  <rect class="section" x="1185" y="1170" width="830" height="420"/>
+  <text class="section-title" x="1205" y="1160">Кабинет модератора</text>
+
+  <!-- Public use cases -->
+  <ellipse class="uc" cx="640" cy="280" rx="170" ry="53"/>
+  <text class="uc-text" x="640" y="275"><tspan x="640">Зарегистрировать</tspan><tspan x="640" dy="24">учетную запись</tspan></text>
+
+  <ellipse class="uc" cx="1020" cy="280" rx="150" ry="53"/>
+  <text class="uc-text" x="1020" y="287">Войти в систему</text>
+
+  <ellipse class="uc" cx="1430" cy="280" rx="195" ry="53"/>
+  <text class="uc-text" x="1430" y="275"><tspan x="1430">Просмотреть и отфильтровать</tspan><tspan x="1430" dy="24">список вакансий</tspan></text>
+
+  <ellipse class="uc" cx="1775" cy="410" rx="170" ry="53"/>
+  <text class="uc-text" x="1775" y="405"><tspan x="1775">Открыть карточку</tspan><tspan x="1775" dy="24">вакансии</tspan></text>
+
+  <!-- Applicant use cases -->
+  <ellipse class="uc" cx="600" cy="760" rx="170" ry="53"/>
+  <text class="uc-text" x="600" y="755"><tspan x="600">Заполнить или изменить</tspan><tspan x="600" dy="24">профиль</tspan></text>
+
+  <ellipse class="uc" cx="905" cy="875" rx="170" ry="53"/>
+  <text class="uc-text" x="905" y="870"><tspan x="905">Добавить вакансию</tspan><tspan x="905" dy="24">в черновик заявки</tspan></text>
+
+  <ellipse class="uc" cx="600" cy="1015" rx="170" ry="53"/>
+  <text class="uc-text" x="600" y="1010"><tspan x="600">Редактировать</tspan><tspan x="600" dy="24">черновик заявки</tspan></text>
+
+  <ellipse class="uc" cx="905" cy="1140" rx="160" ry="53"/>
+  <text class="uc-text" x="905" y="1135"><tspan x="905">Сформировать</tspan><tspan x="905" dy="24">заявку</tspan></text>
+
+  <ellipse class="uc" cx="600" cy="1215" rx="170" ry="53"/>
+  <text class="uc-text" x="600" y="1210"><tspan x="600">Просмотреть статус</tspan><tspan x="600" dy="24">заявки</tspan></text>
+
+  <ellipse class="uc-soft" cx="935" cy="715" rx="145" ry="45"/>
+  <text class="uc-text" x="935" y="711"><tspan x="935">Создать черновик,</tspan><tspan x="935" dy="23">если его нет</tspan></text>
+
+  <ellipse class="uc-soft" cx="830" cy="1280" rx="170" ry="45"/>
+  <text class="uc-text" x="830" y="1276"><tspan x="830">Проверить профиль</tspan><tspan x="830" dy="23">и состав заявки</tspan></text>
+
+  <!-- Employer use cases -->
+  <ellipse class="uc" cx="1450" cy="760" rx="165" ry="53"/>
+  <text class="uc-text" x="1450" y="767">Создать вакансию</text>
+
+  <ellipse class="uc" cx="1770" cy="760" rx="175" ry="53"/>
+  <text class="uc-text" x="1770" y="755"><tspan x="1770">Просмотреть свои</tspan><tspan x="1770" dy="24">вакансии и статусы</tspan></text>
+
+  <ellipse class="uc" cx="1450" cy="930" rx="180" ry="53"/>
+  <text class="uc-text" x="1450" y="925"><tspan x="1450">Просмотреть отклики</tspan><tspan x="1450" dy="24">соискателей</tspan></text>
+
+  <!-- Moderator use cases -->
+  <ellipse class="uc-mod" cx="1450" cy="1300" rx="175" ry="53"/>
+  <text class="uc-text" x="1450" y="1295"><tspan x="1450">Проверить вакансию</tspan><tspan x="1450" dy="24">работодателя</tspan></text>
+
+  <ellipse class="uc-mod" cx="1770" cy="1300" rx="165" ry="53"/>
+  <text class="uc-text" x="1770" y="1295"><tspan x="1770">Одобрить или</tspan><tspan x="1770" dy="24">отклонить вакансию</tspan></text>
+
+  <ellipse class="uc-mod" cx="1450" cy="1470" rx="180" ry="53"/>
+  <text class="uc-text" x="1450" y="1465"><tspan x="1450">Просмотреть</tspan><tspan x="1450" dy="24">сформированные заявки</tspan></text>
+
+  <ellipse class="uc-mod" cx="1770" cy="1470" rx="175" ry="53"/>
+  <text class="uc-text" x="1770" y="1465"><tspan x="1770">Завершить или</tspan><tspan x="1770" dy="24">отклонить заявку</tspan></text>
+
+  <!-- Actor associations: guest -->
+  <path class="assoc" d="M220 302 L470 302"/>
+  <path class="assoc" d="M220 335 L455 335 L870 285"/>
+  <path class="assoc" d="M220 370 L450 370 L1235 285"/>
+  <path class="assoc" d="M220 405 L450 405 L1605 410"/>
+
+  <!-- Actor associations: applicant -->
+  <path class="assoc" d="M205 760 L430 760"/>
+  <path class="assoc" d="M205 800 L380 800 L380 875 L735 875"/>
+  <path class="assoc" d="M205 840 L355 840 L355 1015 L430 1015"/>
+  <path class="assoc" d="M205 880 L330 880 L330 1140 L745 1140"/>
+  <path class="assoc" d="M205 920 L305 920 L305 1215 L430 1215"/>
+
+  <!-- Actor associations: employer -->
+  <path class="assoc" d="M2135 725 L2045 725 L2045 760 L1945 760"/>
+  <path class="assoc" d="M2135 765 L2010 765 L2010 760 L1945 760"/>
+  <path class="assoc" d="M2135 805 L2030 805 L2030 930 L1630 930"/>
+  <path class="assoc" d="M2135 845 L2070 845 L2070 760 L1945 760"/>
+  <path class="assoc" d="M2135 690 L2045 690 L2045 760 L1615 760"/>
+
+  <!-- Actor associations: moderator -->
+  <path class="assoc" d="M2135 1255 L2020 1255 L2020 1300 L1940 1300"/>
+  <path class="assoc" d="M2135 1310 L2020 1310 L2020 1470 L1945 1470"/>
+  <path class="assoc" d="M2135 1365 L1985 1365 L1985 1470 L1630 1470"/>
+  <path class="assoc" d="M2135 1210 L2015 1210 L2015 1300 L1625 1300"/>
+
+  <!-- Dependencies -->
+  <path class="dep" d="M905 822 L925 762"/>
+  <text class="label" x="1000" y="805">«include»</text>
+
+  <path class="dep" d="M905 1193 L840 1238"/>
+  <text class="label" x="1000" y="1240">«include»</text>
+
+  <path class="dep" d="M1625 1300 L1605 1300"/>
+  <text class="label" x="1610" y="1268">«include»</text>
+
+  <path class="dep" d="M1595 1470 L1595 1470"/>
+  <path class="dep" d="M1595 1470 L1600 1470"/>
+  <text class="label" x="1610" y="1438">«include»</text>
+
+  <!-- Legend -->
+  <rect x="395" y="1360" width="690" height="205" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+  <text class="legend-head" x="430" y="1402">Условные обозначения</text>
+  <path class="assoc" d="M430 1445 L545 1445"/>
+  <text class="legend-text" x="575" y="1452">ассоциация роли со сценарием</text>
+  <path class="dep" d="M430 1490 L545 1490"/>
+  <text class="legend-text" x="575" y="1497">обязательный вложенный сценарий «include»</text>
+  <text class="legend-text" x="430" y="1540">Все линии заканчиваются на конкретных прецедентах системы.</text>
+</svg>

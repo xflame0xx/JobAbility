@@ -8,6 +8,7 @@ export const ROUTES = {
 
   VACANCIES: "/vacancies",
   VACANCY_DETAIL: "/vacancies/:id",
+  ANALYTICS: "/analytics",
 
   APPLICATIONS: "/applications",
   APPLICATION_DETAIL: "/applications/:id",
@@ -46,6 +47,7 @@ export const ROUTE_LABELS = {
 
   VACANCIES: "Вакансии",
   VACANCY_DETAIL: "Вакансия",
+  ANALYTICS: "Аналитика",
 
   APPLICATIONS: "Заявки",
   APPLICATION_DETAIL: "Заявка",
