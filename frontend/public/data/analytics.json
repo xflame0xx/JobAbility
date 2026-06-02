@@ -5,6 +5,103 @@
     "updatedAt": "31 мая 2026",
     "dataNotice": "Показатели рассчитаны на основе агрегированных данных платформы"
   },
+  "slices": [
+    {
+      "id": "all",
+      "label": "Вся платформа",
+      "description": "Сумма трёх непересекающихся сегментов платформы",
+      "tone": "violet",
+      "factors": {
+        "candidates": 1,
+        "vacancies": 1,
+        "employed": 1,
+        "conversion": 1,
+        "trends": 1,
+        "activity": { "applications": 1, "interviews": 1, "employed": 1 },
+        "statuses": [1, 1, 1, 1, 1, 1],
+        "funnel": [1, 1, 1, 1, 1],
+        "interviews": { "scheduled": 1, "attended": 1, "successful": 1 },
+        "accessibility": [1, 1, 1, 1, 1],
+        "regions": [1, 1, 1, 1, 1],
+        "categories": [1, 1, 1, 1, 1, 1]
+      }
+    },
+    {
+      "id": "remote",
+      "label": "Удалённая работа",
+      "description": "Основной сценарий: полностью или частично удалённая работа",
+      "tone": "blue",
+      "factors": {
+        "candidates": 0.48,
+        "vacancies": 0.42,
+        "employed": 0.45,
+        "conversion": 1.08,
+        "trends": 1.22,
+        "activity": { "applications": 0.52, "interviews": 0.49, "employed": 0.46 },
+        "statuses": [0.5, 0.48, 0.46, 0.45, 0.31, 0.35],
+        "funnel": [0.51, 0.49, 0.48, 0.47, 0.45],
+        "interviews": { "scheduled": 0.5, "attended": 0.49, "successful": 0.46 },
+        "accessibility": [1.14, 1.03, 1.42, 0.86, 0.93],
+        "regions": [0.54, 0.43, 0.57, 0.5, 0.62],
+        "categories": [1.18, 0.62, 0.46, 0.18, 0.71, 0.52]
+      },
+      "impact": [
+        { "label": "Работодателей", "value": "18", "detail": "предлагают дистанционный или гибридный формат" },
+        { "label": "Среднее время", "value": "18 дней", "detail": "от отклика до выхода на удалённую работу" },
+        { "label": "Повторные обращения", "value": "64%", "detail": "работодателей возвращаются с новыми вакансиями" }
+      ]
+    },
+    {
+      "id": "accessible",
+      "label": "Доступная среда",
+      "description": "Основной сценарий: адаптированное рабочее место или сопровождение",
+      "tone": "green",
+      "factors": {
+        "candidates": 0.36,
+        "vacancies": 0.34,
+        "employed": 0.39,
+        "conversion": 1.16,
+        "trends": 1.31,
+        "activity": { "applications": 0.37, "interviews": 0.4, "employed": 0.42 },
+        "statuses": [0.36, 0.39, 0.42, 0.39, 0.28, 0.26],
+        "funnel": [0.4, 0.41, 0.42, 0.43, 0.39],
+        "interviews": { "scheduled": 0.41, "attended": 0.42, "successful": 0.43 },
+        "accessibility": [1.08, 1.29, 0.96, 1.51, 1.57],
+        "regions": [0.31, 0.38, 0.57, 0.5, 0.41],
+        "categories": [0.38, 0.58, 0.61, 0.47, 0.79, 0.43]
+      },
+      "impact": [
+        { "label": "Работодателей", "value": "15", "detail": "готовы адаптировать рабочее место под сотрудника" },
+        { "label": "Среднее время", "value": "24 дня", "detail": "от отклика до выхода с учётом подготовки среды" },
+        { "label": "С сопровождением", "value": "61%", "detail": "вакансий включают наставника на период адаптации" }
+      ]
+    },
+    {
+      "id": "career",
+      "label": "Старт карьеры",
+      "description": "Основной сценарий: трудоустройство кандидатов без большого опыта",
+      "tone": "orange",
+      "factors": {
+        "candidates": 0.57,
+        "vacancies": 0.49,
+        "employed": 0.54,
+        "conversion": 1.04,
+        "trends": 1.18,
+        "activity": { "applications": 0.61, "interviews": 0.56, "employed": 0.53 },
+        "statuses": [0.64, 0.58, 0.51, 0.54, 0.44, 0.48],
+        "funnel": [0.59, 0.58, 0.56, 0.54, 0.54],
+        "interviews": { "scheduled": 0.57, "attended": 0.55, "successful": 0.53 },
+        "accessibility": [1.03, 0.94, 0.88, 0.91, 1.16],
+        "regions": [0.48, 0.5, 0.64, 0.58, 0.72],
+        "categories": [0.69, 0.86, 0.74, 0.81, 1.04, 0.77]
+      },
+      "impact": [
+        { "label": "Работодателей", "value": "19", "detail": "готовы рассматривать кандидатов без большого опыта" },
+        { "label": "Среднее время", "value": "17 дней", "detail": "от отклика до первого рабочего дня" },
+        { "label": "С наставником", "value": "49%", "detail": "вакансий предусматривают вводное сопровождение" }
+      ]
+    }
+  ],
   "summary": [
     {
       "id": "candidates",

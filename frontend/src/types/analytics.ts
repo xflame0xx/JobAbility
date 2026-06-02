@@ -69,8 +69,39 @@ export interface ImpactItem {
   detail: string;
 }
 
-export interface AnalyticsData {
-  meta: AnalyticsMeta;
+export interface AnalyticsSliceFactors {
+  candidates: number;
+  vacancies: number;
+  employed: number;
+  conversion: number;
+  trends: number;
+  activity: {
+    applications: number;
+    interviews: number;
+    employed: number;
+  };
+  statuses: number[];
+  funnel: number[];
+  interviews: {
+    scheduled: number;
+    attended: number;
+    successful: number;
+  };
+  accessibility: number[];
+  regions: number[];
+  categories: number[];
+}
+
+export interface AnalyticsSlice {
+  id: string;
+  label: string;
+  description: string;
+  tone: AnalyticsTone;
+  factors: AnalyticsSliceFactors;
+  impact?: ImpactItem[];
+}
+
+export interface AnalyticsDataset {
   summary: AnalyticsSummaryItem[];
   monthlyActivity: MonthlyActivityItem[];
   applicationStatuses: AnalyticsStatusItem[];
@@ -80,4 +111,9 @@ export interface AnalyticsData {
   regions: RegionItem[];
   categories: CategoryItem[];
   impact: ImpactItem[];
+}
+
+export interface AnalyticsData extends AnalyticsDataset {
+  meta: AnalyticsMeta;
+  slices: AnalyticsSlice[];
 }

@@ -4,7 +4,9 @@ import { AppBreadcrumbs } from "../components/AppBreadcrumbs";
 import type {
   AccessibilityItem,
   AnalyticsData,
+  AnalyticsDataset,
   AnalyticsFunnelItem,
+  AnalyticsSlice,
   AnalyticsStatusItem,
   CategoryItem,
   InterviewDynamicsItem,
@@ -19,11 +21,191 @@ const formatNumber = (value: number) => numberFormatter.format(value);
 const cssVar = (name: string, value: string) =>
   ({ [name]: value }) as CSSProperties;
 
+const roundToOne = (value: number) => Math.round(value * 10) / 10;
+
+const scaleValue = (value: number, factor: number) =>
+  Math.max(0, Math.round(value * factor));
+
+const getFactor = (factors: number[], index: number) => factors[index] ?? 1;
+
+const distributeSliceValue = (
+  data: AnalyticsData,
+  activeSlice: AnalyticsSlice,
+  value: number,
+  getWeight: (slice: AnalyticsSlice) => number,
+) => {
+  if (activeSlice.id === "all") {
+    return value;
+  }
+
+  const slices = data.slices.filter((slice) => slice.id !== "all");
+  const weights = slices.map((slice) => Math.max(0, getWeight(slice)));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+  if (totalWeight === 0) {
+    return 0;
+  }
+
+  const exactValues = weights.map((weight) => (value * weight) / totalWeight);
+  const allocatedValues = exactValues.map(Math.floor);
+  const remainder =
+    value - allocatedValues.reduce((sum, allocatedValue) => sum + allocatedValue, 0);
+
+  exactValues
+    .map((exactValue, index) => ({
+      fraction: exactValue - allocatedValues[index],
+      index,
+    }))
+    .sort((left, right) => right.fraction - left.fraction)
+    .slice(0, remainder)
+    .forEach(({ index }) => {
+      allocatedValues[index] += 1;
+    });
+
+  return allocatedValues[slices.findIndex((slice) => slice.id === activeSlice.id)];
+};
+
+const applyAnalyticsSlice = (
+  data: AnalyticsData,
+  slice: AnalyticsSlice,
+): AnalyticsDataset => {
+  const { factors } = slice;
+  const summary = data.summary.map((item) => {
+    const factor =
+      item.id === "candidates"
+        ? factors.candidates
+        : item.id === "vacancies"
+          ? factors.vacancies
+          : item.id === "employed"
+            ? factors.employed
+            : item.id === "conversion"
+              ? factors.conversion
+              : 1;
+
+    return {
+      ...item,
+      value:
+        item.format === "percent"
+          ? roundToOne(item.value * factor)
+          : distributeSliceValue(data, slice, item.value, (candidateSlice) => {
+              const candidateFactors = candidateSlice.factors;
+
+              return item.id === "candidates"
+                ? candidateFactors.candidates
+                : item.id === "vacancies"
+                  ? candidateFactors.vacancies
+                  : item.id === "employed"
+                    ? candidateFactors.employed
+                    : 1;
+            }),
+      trend: roundToOne(item.trend * factors.trends),
+    };
+  });
+
+  const vacancyTotal =
+    summary.find((item) => item.id === "vacancies")?.value ?? 1;
+  const interviewFunnel = data.interviewFunnel.map((item, index) => ({
+    ...item,
+    value: distributeSliceValue(data, slice, item.value, (candidateSlice) =>
+      getFactor(candidateSlice.factors.funnel, index),
+    ),
+  }));
+  const funnelTotal = interviewFunnel[0]?.value ?? 1;
+
+  return {
+    summary,
+    monthlyActivity: data.monthlyActivity.map((item) => ({
+      ...item,
+      applications: distributeSliceValue(
+        data,
+        slice,
+        item.applications,
+        (candidateSlice) => candidateSlice.factors.activity.applications,
+      ),
+      interviews: distributeSliceValue(
+        data,
+        slice,
+        item.interviews,
+        (candidateSlice) => candidateSlice.factors.activity.interviews,
+      ),
+      employed: distributeSliceValue(
+        data,
+        slice,
+        item.employed,
+        (candidateSlice) => candidateSlice.factors.activity.employed,
+      ),
+    })),
+    applicationStatuses: data.applicationStatuses.map((item, index) => ({
+      ...item,
+      value: distributeSliceValue(data, slice, item.value, (candidateSlice) =>
+        getFactor(candidateSlice.factors.statuses, index),
+      ),
+    })),
+    interviewFunnel: interviewFunnel.map((item) => ({
+      ...item,
+      detail: `${roundToOne((item.value / funnelTotal) * 100)}% от приглашённых`,
+    })),
+    interviewDynamics: data.interviewDynamics.map((item) => ({
+      ...item,
+      scheduled: distributeSliceValue(data, slice, item.scheduled, (candidateSlice) =>
+        candidateSlice.factors.interviews.scheduled,
+      ),
+      attended: distributeSliceValue(data, slice, item.attended, (candidateSlice) =>
+        candidateSlice.factors.interviews.attended,
+      ),
+      successful: distributeSliceValue(
+        data,
+        slice,
+        item.successful,
+        (candidateSlice) => candidateSlice.factors.interviews.successful,
+      ),
+    })),
+    accessibility: data.accessibility.map((item, index) => {
+      const factor = getFactor(factors.accessibility, index);
+
+      return {
+        ...item,
+        value: Math.min(100, scaleValue(item.value, factor)),
+        count: distributeSliceValue(data, slice, item.count, (candidateSlice) => {
+          const candidateFactors = candidateSlice.factors;
+
+          return (
+            getFactor(candidateFactors.accessibility, index) *
+            candidateFactors.vacancies
+          );
+        }),
+      };
+    }),
+    regions: data.regions.map((item, index) => {
+      const value = distributeSliceValue(data, slice, item.value, (candidateSlice) =>
+        getFactor(candidateSlice.factors.regions, index),
+      );
+
+      return {
+        ...item,
+        value,
+        share: roundToOne((value / vacancyTotal) * 100),
+      };
+    }),
+    categories: data.categories.map((item, index) => ({
+      ...item,
+      value: distributeSliceValue(data, slice, item.value, (candidateSlice) =>
+        getFactor(candidateSlice.factors.categories, index),
+      ),
+      trend: roundToOne(item.trend * factors.trends),
+    })),
+    impact: slice.impact ?? data.impact,
+  };
+};
+
 type AnalyticsFocusId =
   | "employment"
+  | "applications"
+  | "funnel"
   | "interviews"
   | "accessibility"
-  | "regions";
+  | "regions"
+  | "categories";
 
 interface AnalyticsFocusItem {
   id: AnalyticsFocusId;
@@ -674,6 +856,7 @@ export const AnalyticsPage = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState("");
   const [period, setPeriod] = useState(12);
+  const [activeSliceId, setActiveSliceId] = useState("all");
   const [activeFocusId, setActiveFocusId] =
     useState<AnalyticsFocusId>("employment");
 
@@ -710,9 +893,21 @@ export const AnalyticsPage = () => {
     return () => controller.abort();
   }, []);
 
+  const activeSlice = useMemo(
+    () =>
+      data?.slices.find((slice) => slice.id === activeSliceId) ??
+      data?.slices[0],
+    [activeSliceId, data],
+  );
+
+  const dashboardData = useMemo(
+    () => (data && activeSlice ? applyAnalyticsSlice(data, activeSlice) : null),
+    [activeSlice, data],
+  );
+
   const activity = useMemo(
-    () => data?.monthlyActivity.slice(-period) ?? [],
-    [data, period],
+    () => dashboardData?.monthlyActivity.slice(-period) ?? [],
+    [dashboardData, period],
   );
 
   const activityTotal = useMemo(
@@ -721,23 +916,33 @@ export const AnalyticsPage = () => {
   );
 
   const focusItems = useMemo<AnalyticsFocusItem[]>(() => {
-    if (!data) {
+    if (!dashboardData) {
       return [];
     }
 
-    const employed = data.summary.find((item) => item.id === "employed") ?? {
+    const employed = dashboardData.summary.find((item) => item.id === "employed") ?? {
       value: 0,
       trend: 0,
       trendLabel: "к прошлому периоду",
     };
     const latestInterview =
-      data.interviewDynamics[data.interviewDynamics.length - 1];
+      dashboardData.interviewDynamics[dashboardData.interviewDynamics.length - 1];
     const averageAccessibility = Math.round(
-      data.accessibility.reduce((sum, item) => sum + item.value, 0) /
-        data.accessibility.length,
+      dashboardData.accessibility.reduce((sum, item) => sum + item.value, 0) /
+        dashboardData.accessibility.length,
     );
-    const topAccessibility = data.accessibility[0];
-    const leaderRegion = data.regions[0];
+    const topAccessibility = dashboardData.accessibility[0];
+    const leaderRegion = dashboardData.regions[0];
+    const topApplicationStatus = dashboardData.applicationStatuses.reduce((leader, item) =>
+      item.value > leader.value ? item : leader,
+    );
+    const firstFunnelStep = dashboardData.interviewFunnel[0];
+    const lastFunnelStep =
+      dashboardData.interviewFunnel[dashboardData.interviewFunnel.length - 1];
+    const funnelConversion = Math.round(
+      (lastFunnelStep.value / firstFunnelStep.value) * 100,
+    );
+    const topCategory = dashboardData.categories[0];
 
     return [
       {
@@ -749,6 +954,28 @@ export const AnalyticsPage = () => {
         metric: `+${employed.trend}%`,
         metricLabel: employed.trendLabel,
         targetId: "analytics-activity",
+        tone: "green",
+      },
+      {
+        id: "applications",
+        label: "Заявки",
+        eyebrow: "Главный статус заявок",
+        value: topApplicationStatus.label,
+        detail: "самая крупная группа актуальных откликов на платформе",
+        metric: `${topApplicationStatus.value}`,
+        metricLabel: "заявок на этапе",
+        targetId: "analytics-applications",
+        tone: "violet",
+      },
+      {
+        id: "funnel",
+        label: "Воронка",
+        eyebrow: "Конверсия собеседований",
+        value: `${funnelConversion}%`,
+        detail: "приглашённых кандидатов вышли на работу",
+        metric: `${lastFunnelStep.value}`,
+        metricLabel: "трудоустроено",
+        targetId: "analytics-funnel",
         tone: "green",
       },
       {
@@ -786,8 +1013,19 @@ export const AnalyticsPage = () => {
         targetId: "analytics-regions",
         tone: "orange",
       },
+      {
+        id: "categories",
+        label: "Направления",
+        eyebrow: "Лидер рынка вакансий",
+        value: topCategory.label,
+        detail: "наиболее востребованное направление среди работодателей",
+        metric: `${topCategory.value}`,
+        metricLabel: "активных вакансий",
+        targetId: "analytics-categories",
+        tone: "blue",
+      },
     ];
-  }, [data]);
+  }, [dashboardData]);
 
   const activeFocus =
     focusItems.find((item) => item.id === activeFocusId) ?? focusItems[0];
@@ -811,7 +1049,7 @@ export const AnalyticsPage = () => {
     );
   }
 
-  if (!data) {
+  if (!data || !dashboardData || !activeSlice) {
     return (
       <section className="analytics-page">
         <AppBreadcrumbs items={[{ label: "Аналитика" }]} />
@@ -852,8 +1090,8 @@ export const AnalyticsPage = () => {
       </header>
 
       <div className="analytics-summary-grid">
-        {data.summary.map((item) => (
-          <article className={`analytics-summary-card analytics-summary-card--${item.tone}`} key={item.id}>
+        {dashboardData.summary.map((item) => (
+          <article className={`analytics-summary-card analytics-summary-card--${item.tone}`} key={`${activeSliceId}-${item.id}`}>
             <div className="analytics-summary-card__top">
               <span className="analytics-summary-icon"><SummaryIcon id={item.id} /></span>
               <span className="analytics-trend">+{item.trend}%</span>
@@ -864,6 +1102,36 @@ export const AnalyticsPage = () => {
           </article>
         ))}
       </div>
+
+      <section className={`analytics-slice analytics-slice--${activeSlice.tone}`}>
+        <div className="analytics-slice__intro">
+          <span className="analytics-card__eyebrow">Срез данных</span>
+          <h2>Переключите картину целиком</h2>
+          <p>{activeSlice.description}</p>
+        </div>
+
+        <div className="analytics-slice__controls" role="tablist" aria-label="Срез данных аналитики">
+          {data.slices.map((slice) => (
+            <button
+              aria-selected={slice.id === activeSliceId}
+              className={slice.id === activeSliceId ? "is-active" : ""}
+              key={slice.id}
+              onClick={() => setActiveSliceId(slice.id)}
+              role="tab"
+              type="button"
+            >
+              <i />
+              <span>{slice.label}</span>
+              <small>{slice.description}</small>
+            </button>
+          ))}
+        </div>
+
+        <small className="analytics-slice__note">
+          <i />
+          Три сегмента не пересекаются: количества в сумме дают всю платформу, проценты считаются внутри сегмента
+        </small>
+      </section>
 
       <section className={`analytics-focus analytics-focus--${activeFocus.tone}`}>
         <div className="analytics-focus__intro">
@@ -888,7 +1156,7 @@ export const AnalyticsPage = () => {
           ))}
         </div>
 
-        <div className="analytics-focus__result" key={activeFocus.id}>
+        <div className="analytics-focus__result" key={`${activeSliceId}-${activeFocus.id}`}>
           <div className="analytics-focus__value">
             <span>{activeFocus.eyebrow}</span>
             <strong>{activeFocus.value}</strong>
@@ -935,7 +1203,7 @@ export const AnalyticsPage = () => {
             </div>
           </div>
 
-          <ActivityChart data={activity} key={period} />
+          <ActivityChart data={activity} key={`${activeSliceId}-${period}`} />
         </article>
 
         <article className="analytics-card analytics-card--impact">
@@ -947,7 +1215,7 @@ export const AnalyticsPage = () => {
           </div>
 
           <div className="analytics-impact-list">
-            {data.impact.map((item) => (
+            {dashboardData.impact.map((item) => (
               <div key={item.label}>
                 <strong>{item.value}</strong>
                 <span>{item.label}</span>
@@ -959,7 +1227,10 @@ export const AnalyticsPage = () => {
       </div>
 
       <div className="analytics-grid analytics-grid--two">
-        <article className="analytics-card">
+        <article
+          className={`analytics-card${focusCardClass("analytics-applications")}`}
+          id="analytics-applications"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Заявки</span>
@@ -967,10 +1238,13 @@ export const AnalyticsPage = () => {
               <p>Распределение актуальных откликов по этапам</p>
             </div>
           </div>
-          <StatusDonut items={data.applicationStatuses} />
+          <StatusDonut items={dashboardData.applicationStatuses} key={activeSliceId} />
         </article>
 
-        <article className="analytics-card analytics-card--funnel">
+        <article
+          className={`analytics-card analytics-card--funnel${focusCardClass("analytics-funnel")}`}
+          id="analytics-funnel"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Конверсия</span>
@@ -978,7 +1252,7 @@ export const AnalyticsPage = () => {
               <p>Как кандидаты проходят ключевые этапы отбора</p>
             </div>
           </div>
-          <InterviewFunnel items={data.interviewFunnel} />
+          <InterviewFunnel items={dashboardData.interviewFunnel} key={activeSliceId} />
         </article>
       </div>
 
@@ -994,7 +1268,7 @@ export const AnalyticsPage = () => {
               <p>Динамика за последние шесть месяцев</p>
             </div>
           </div>
-          <InterviewOrbit items={data.interviewDynamics} />
+          <InterviewOrbit items={dashboardData.interviewDynamics} key={activeSliceId} />
         </article>
 
         <article
@@ -1008,7 +1282,7 @@ export const AnalyticsPage = () => {
               <p>Доля вакансий с конкретными условиями адаптации</p>
             </div>
           </div>
-          <AccessibilityRadar items={data.accessibility} />
+          <AccessibilityRadar items={dashboardData.accessibility} key={activeSliceId} />
         </article>
       </div>
 
@@ -1025,10 +1299,13 @@ export const AnalyticsPage = () => {
             </div>
           </div>
 
-          <RegionLollipopChart items={data.regions} />
+          <RegionLollipopChart items={dashboardData.regions} key={activeSliceId} />
         </article>
 
-        <article className="analytics-card analytics-card--skyline">
+        <article
+          className={`analytics-card analytics-card--skyline${focusCardClass("analytics-categories")}`}
+          id="analytics-categories"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Рынок вакансий</span>
@@ -1037,7 +1314,7 @@ export const AnalyticsPage = () => {
             </div>
           </div>
 
-          <CategorySkylineChart items={data.categories} />
+          <CategorySkylineChart items={dashboardData.categories} key={activeSliceId} />
         </article>
       </div>
 
