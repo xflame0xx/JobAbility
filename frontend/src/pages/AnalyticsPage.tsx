@@ -19,6 +19,24 @@ const formatNumber = (value: number) => numberFormatter.format(value);
 const cssVar = (name: string, value: string) =>
   ({ [name]: value }) as CSSProperties;
 
+type AnalyticsFocusId =
+  | "employment"
+  | "interviews"
+  | "accessibility"
+  | "regions";
+
+interface AnalyticsFocusItem {
+  id: AnalyticsFocusId;
+  label: string;
+  eyebrow: string;
+  value: string;
+  detail: string;
+  metric: string;
+  metricLabel: string;
+  targetId: string;
+  tone: "violet" | "blue" | "green" | "orange";
+}
+
 const buildLinePath = (
   items: MonthlyActivityItem[],
   key: keyof Pick<MonthlyActivityItem, "applications" | "interviews" | "employed">,
@@ -656,6 +674,8 @@ export const AnalyticsPage = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState("");
   const [period, setPeriod] = useState(12);
+  const [activeFocusId, setActiveFocusId] =
+    useState<AnalyticsFocusId>("employment");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -699,6 +719,88 @@ export const AnalyticsPage = () => {
     () => activity.reduce((sum, item) => sum + item.applications, 0),
     [activity],
   );
+
+  const focusItems = useMemo<AnalyticsFocusItem[]>(() => {
+    if (!data) {
+      return [];
+    }
+
+    const employed = data.summary.find((item) => item.id === "employed") ?? {
+      value: 0,
+      trend: 0,
+      trendLabel: "к прошлому периоду",
+    };
+    const latestInterview =
+      data.interviewDynamics[data.interviewDynamics.length - 1];
+    const averageAccessibility = Math.round(
+      data.accessibility.reduce((sum, item) => sum + item.value, 0) /
+        data.accessibility.length,
+    );
+    const topAccessibility = data.accessibility[0];
+    const leaderRegion = data.regions[0];
+
+    return [
+      {
+        id: "employment",
+        label: "Трудоустройство",
+        eyebrow: "Результат платформы",
+        value: `${formatNumber(employed.value)} человек`,
+        detail: "вышли на работу через JobAbility за выбранный период",
+        metric: `+${employed.trend}%`,
+        metricLabel: employed.trendLabel,
+        targetId: "analytics-activity",
+        tone: "green",
+      },
+      {
+        id: "interviews",
+        label: "Собеседования",
+        eyebrow: `Пульс за ${latestInterview.month.toLowerCase()}`,
+        value: `${latestInterview.attended} прошли`,
+        detail: "собеседование после назначения встречи работодателем",
+        metric: `${Math.round(
+          (latestInterview.attended / latestInterview.scheduled) * 100,
+        )}%`,
+        metricLabel: "явка кандидатов",
+        targetId: "analytics-interviews",
+        tone: "blue",
+      },
+      {
+        id: "accessibility",
+        label: "Доступность",
+        eyebrow: "Индекс инклюзивности",
+        value: `${averageAccessibility}%`,
+        detail: "средний уровень представленности условий адаптации",
+        metric: `${topAccessibility.value}%`,
+        metricLabel: topAccessibility.label,
+        targetId: "analytics-accessibility",
+        tone: "violet",
+      },
+      {
+        id: "regions",
+        label: "География",
+        eyebrow: "Регион-лидер",
+        value: leaderRegion.label,
+        detail: "лидирует по числу активных вакансий на платформе",
+        metric: `${leaderRegion.value}`,
+        metricLabel: "активных вакансий",
+        targetId: "analytics-regions",
+        tone: "orange",
+      },
+    ];
+  }, [data]);
+
+  const activeFocus =
+    focusItems.find((item) => item.id === activeFocusId) ?? focusItems[0];
+
+  const openFocusChart = () => {
+    document.getElementById(activeFocus.targetId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
+  const focusCardClass = (targetId: string) =>
+    activeFocus?.targetId === targetId ? " analytics-card--spotlight" : "";
 
   if (error) {
     return (
@@ -763,8 +865,55 @@ export const AnalyticsPage = () => {
         ))}
       </div>
 
+      <section className={`analytics-focus analytics-focus--${activeFocus.tone}`}>
+        <div className="analytics-focus__intro">
+          <span className="analytics-card__eyebrow">Аналитический фокус</span>
+          <h2>Посмотрите данные под разным углом</h2>
+          <p>Выберите сценарий: показатели и акцентная диаграмма обновятся автоматически.</p>
+        </div>
+
+        <div className="analytics-focus__tabs" role="tablist" aria-label="Сценарий аналитики">
+          {focusItems.map((item) => (
+            <button
+              aria-selected={item.id === activeFocusId}
+              className={item.id === activeFocusId ? "is-active" : ""}
+              key={item.id}
+              onClick={() => setActiveFocusId(item.id)}
+              role="tab"
+              type="button"
+            >
+              <i />
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="analytics-focus__result" key={activeFocus.id}>
+          <div className="analytics-focus__value">
+            <span>{activeFocus.eyebrow}</span>
+            <strong>{activeFocus.value}</strong>
+            <p>{activeFocus.detail}</p>
+          </div>
+
+          <div className="analytics-focus__metric">
+            <strong>{activeFocus.metric}</strong>
+            <span>{activeFocus.metricLabel}</span>
+          </div>
+
+          <button className="analytics-focus__action" onClick={openFocusChart} type="button">
+            Показать диаграмму
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </section>
+
       <div className="analytics-grid analytics-grid--activity">
-        <article className="analytics-card analytics-card--wide">
+        <article
+          className={`analytics-card analytics-card--wide${focusCardClass("analytics-activity")}`}
+          id="analytics-activity"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Динамика платформы</span>
@@ -834,7 +983,10 @@ export const AnalyticsPage = () => {
       </div>
 
       <div className="analytics-grid analytics-grid--two">
-        <article className="analytics-card analytics-card--orbit">
+        <article
+          className={`analytics-card analytics-card--orbit${focusCardClass("analytics-interviews")}`}
+          id="analytics-interviews"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Собеседования</span>
@@ -845,7 +997,10 @@ export const AnalyticsPage = () => {
           <InterviewOrbit items={data.interviewDynamics} />
         </article>
 
-        <article className="analytics-card analytics-card--radar">
+        <article
+          className={`analytics-card analytics-card--radar${focusCardClass("analytics-accessibility")}`}
+          id="analytics-accessibility"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Инклюзивность</span>
@@ -858,7 +1013,10 @@ export const AnalyticsPage = () => {
       </div>
 
       <div className="analytics-grid analytics-grid--two">
-        <article className="analytics-card analytics-card--lollipop">
+        <article
+          className={`analytics-card analytics-card--lollipop${focusCardClass("analytics-regions")}`}
+          id="analytics-regions"
+        >
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">География</span>
