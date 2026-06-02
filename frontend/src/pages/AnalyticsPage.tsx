@@ -6,8 +6,10 @@ import type {
   AnalyticsData,
   AnalyticsFunnelItem,
   AnalyticsStatusItem,
+  CategoryItem,
   InterviewDynamicsItem,
   MonthlyActivityItem,
+  RegionItem,
 } from "../types/analytics";
 
 const numberFormatter = new Intl.NumberFormat("ru-RU");
@@ -263,77 +265,360 @@ const InterviewFunnel = ({ items }: InterviewFunnelProps) => {
   );
 };
 
-interface InterviewBarsProps {
+const polarPoint = (
+  index: number,
+  total: number,
+  radius: number,
+  centerX = 50,
+  centerY = 50,
+) => {
+  const angle = -Math.PI / 2 + (index * Math.PI * 2) / total;
+
+  return {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
+  };
+};
+
+interface InterviewOrbitProps {
   items: InterviewDynamicsItem[];
 }
 
-const InterviewBars = ({ items }: InterviewBarsProps) => {
+const InterviewOrbit = ({ items }: InterviewOrbitProps) => {
   const [activeIndex, setActiveIndex] = useState(items.length - 1);
   const maxValue = Math.max(...items.map((item) => item.scheduled));
   const active = items[activeIndex];
+  const attendance = Math.round((active.attended / active.scheduled) * 100);
+  const success = Math.round((active.successful / active.attended) * 100);
+
+  const ringDash = (value: number, radius: number) => {
+    const circumference = 2 * Math.PI * radius;
+
+    return `${(value / maxValue) * circumference} ${circumference}`;
+  };
 
   return (
-    <div className="analytics-bars-chart">
-      <div className="analytics-bars-tooltip">
-        <strong>{active.month}</strong>
-        <span>Назначено: {formatNumber(active.scheduled)}</span>
-        <span>Прошли: {formatNumber(active.attended)}</span>
-        <span>Успешно: {formatNumber(active.successful)}</span>
+    <div className="analytics-orbit-layout">
+      <div className="analytics-orbit-visual">
+        <svg viewBox="0 0 300 300" role="img" aria-label="Орбитальная динамика собеседований">
+          <defs>
+            <filter id="analytics-orbit-glow">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle className="analytics-orbit-path analytics-orbit-path--outer" cx="150" cy="150" r="118" />
+          <circle className="analytics-orbit-path" cx="150" cy="150" r="70" />
+          <circle className="analytics-orbit-track" cx="150" cy="150" r="70" />
+          <circle className="analytics-orbit-track" cx="150" cy="150" r="54" />
+          <circle className="analytics-orbit-track" cx="150" cy="150" r="38" />
+          <circle
+            className="analytics-orbit-progress analytics-orbit-progress--violet"
+            cx="150"
+            cy="150"
+            r="70"
+            strokeDasharray={ringDash(active.scheduled, 70)}
+          />
+          <circle
+            className="analytics-orbit-progress analytics-orbit-progress--blue"
+            cx="150"
+            cy="150"
+            r="54"
+            strokeDasharray={ringDash(active.attended, 54)}
+          />
+          <circle
+            className="analytics-orbit-progress analytics-orbit-progress--green"
+            cx="150"
+            cy="150"
+            r="38"
+            strokeDasharray={ringDash(active.successful, 38)}
+          />
+        </svg>
+
+        {items.map((item, index) => {
+          const point = polarPoint(index, items.length, 39.5);
+
+          return (
+            <button
+              className={`analytics-orbit-node ${index === activeIndex ? "is-active" : ""}`}
+              key={item.month}
+              type="button"
+              style={{ left: `${point.x}%`, top: `${point.y}%` }}
+              onClick={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+            >
+              <i />
+              <span>{item.month}</span>
+            </button>
+          );
+        })}
+
+        <div className="analytics-orbit-core">
+          <small>{active.month}</small>
+          <strong>{active.attended}</strong>
+          <span>прошли</span>
+        </div>
       </div>
 
-      <div className="analytics-bars-chart__plot" role="img" aria-label="Динамика собеседований">
-        {items.map((item, index) => (
-          <div
-            key={item.month}
-            className={`analytics-bars-chart__group ${index === activeIndex ? "is-active" : ""}`}
-            tabIndex={0}
-            onMouseEnter={() => setActiveIndex(index)}
-            onFocus={() => setActiveIndex(index)}
-          >
-            <div className="analytics-bars-chart__columns">
-              <i className="analytics-bar analytics-bar--scheduled" style={cssVar("--analytics-bar-height", `${(item.scheduled / maxValue) * 100}%`)} />
-              <i className="analytics-bar analytics-bar--attended" style={cssVar("--analytics-bar-height", `${(item.attended / maxValue) * 100}%`)} />
-              <i className="analytics-bar analytics-bar--successful" style={cssVar("--analytics-bar-height", `${(item.successful / maxValue) * 100}%`)} />
-            </div>
-            <span>{item.month}</span>
+      <div className="analytics-orbit-insights">
+        <div className="analytics-orbit-insights__head">
+          <span>Пульс месяца</span>
+          <strong>{active.month}</strong>
+        </div>
+
+        <div className="analytics-orbit-metrics">
+          <div>
+            <i className="analytics-dot analytics-dot--soft-violet" />
+            <span>Назначено</span>
+            <strong>{active.scheduled}</strong>
           </div>
-        ))}
-      </div>
+          <div>
+            <i className="analytics-dot analytics-dot--blue" />
+            <span>Прошли</span>
+            <strong>{active.attended}</strong>
+          </div>
+          <div>
+            <i className="analytics-dot analytics-dot--green" />
+            <span>Успешно</span>
+            <strong>{active.successful}</strong>
+          </div>
+        </div>
 
-      <div className="analytics-chart-legend">
-        <span><i className="analytics-dot analytics-dot--soft-violet" />Назначено</span>
-        <span><i className="analytics-dot analytics-dot--blue" />Прошли</span>
-        <span><i className="analytics-dot analytics-dot--green" />Успешно</span>
+        <div className="analytics-orbit-conversion">
+          <div>
+            <span>Явка</span>
+            <strong>{attendance}%</strong>
+          </div>
+          <div>
+            <span>Успешность</span>
+            <strong>{success}%</strong>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-interface AccessibilityListProps {
+interface AccessibilityRadarProps {
   items: AccessibilityItem[];
 }
 
-const AccessibilityList = ({ items }: AccessibilityListProps) => (
-  <div className="analytics-progress-list">
-    {items.map((item) => (
-      <div className="analytics-progress" key={item.label}>
-        <div className="analytics-progress__head">
-          <span>{item.label}</span>
-          <strong>{item.value}%</strong>
+const AccessibilityRadar = ({ items }: AccessibilityRadarProps) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const center = 150;
+  const radius = 104;
+  const active = items[activeIndex];
+  const average = Math.round(
+    items.reduce((sum, item) => sum + item.value, 0) / items.length,
+  );
+
+  const radarPoint = (index: number, value: number) => {
+    return polarPoint(index, items.length, radius * value, center, center);
+  };
+
+  const polygon = (value: number) => {
+    return items
+      .map((_, index) => {
+        const point = radarPoint(index, value);
+
+        return `${point.x},${point.y}`;
+      })
+      .join(" ");
+  };
+
+  const valuePolygon = items
+    .map((item, index) => {
+      const point = radarPoint(index, item.value / 100);
+
+      return `${point.x},${point.y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className="analytics-radar-layout">
+      <div className="analytics-radar-visual">
+        <svg viewBox="0 0 300 300" role="img" aria-label="Радар условий доступной работы">
+          <defs>
+            <linearGradient id="analytics-radar-fill" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stopColor="#635bff" stopOpacity="0.48" />
+              <stop offset="100%" stopColor="#28a7f0" stopOpacity="0.22" />
+            </linearGradient>
+            <filter id="analytics-radar-glow">
+              <feGaussianBlur stdDeviation="3.6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {[0.25, 0.5, 0.75, 1].map((level) => (
+            <polygon className="analytics-radar-grid" key={level} points={polygon(level)} />
+          ))}
+
+          {items.map((_, index) => {
+            const point = radarPoint(index, 1);
+
+            return (
+              <line
+                className="analytics-radar-axis"
+                key={index}
+                x1={center}
+                x2={point.x}
+                y1={center}
+                y2={point.y}
+              />
+            );
+          })}
+
+          <polygon className="analytics-radar-shape" points={valuePolygon} />
+
+          {items.map((item, index) => {
+            const point = radarPoint(index, item.value / 100);
+
+            return (
+              <circle
+                className={`analytics-radar-point ${index === activeIndex ? "is-active" : ""}`}
+                cx={point.x}
+                cy={point.y}
+                key={item.label}
+                r={index === activeIndex ? 7 : 4.5}
+                onMouseEnter={() => setActiveIndex(index)}
+              />
+            );
+          })}
+        </svg>
+
+        <div className="analytics-radar-center">
+          <strong>{average}%</strong>
+          <span>средний индекс</span>
         </div>
-        <div className="analytics-progress__track">
-          <i
-            style={{
-              ...cssVar("--analytics-progress-width", `${item.value}%`),
-              backgroundColor: item.color,
-            }}
-          />
-        </div>
-        <small>{formatNumber(item.count)} вакансий</small>
       </div>
-    ))}
-  </div>
-);
+
+      <div className="analytics-radar-legend">
+        <div className="analytics-radar-legend__active">
+          <span>{active.label}</span>
+          <strong>{active.value}%</strong>
+          <small>{formatNumber(active.count)} вакансий</small>
+        </div>
+
+        {items.map((item, index) => (
+          <button
+            className={index === activeIndex ? "is-active" : ""}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+            onMouseEnter={() => setActiveIndex(index)}
+            onFocus={() => setActiveIndex(index)}
+          >
+            <i style={{ backgroundColor: item.color }} />
+            <span>{item.label}</span>
+            <strong>{item.value}%</strong>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+interface RegionLollipopChartProps {
+  items: RegionItem[];
+}
+
+const RegionLollipopChart = ({ items }: RegionLollipopChartProps) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = items[activeIndex];
+  const maxValue = Math.max(...items.map((item) => item.value));
+
+  return (
+    <div className="analytics-lollipop">
+      <div className="analytics-lollipop__summary">
+        <span>0{activeIndex + 1}</span>
+        <div>
+          <strong>{active.label}</strong>
+          <small>{active.value} активных вакансий</small>
+        </div>
+        <b>{active.share}%</b>
+      </div>
+
+      <div className="analytics-lollipop__chart" role="img" aria-label="Рейтинг регионов по количеству вакансий">
+        {items.map((item, index) => (
+          <button
+            className={`analytics-lollipop__row ${index === activeIndex ? "is-active" : ""}`}
+            key={item.label}
+            type="button"
+            onClick={() => setActiveIndex(index)}
+            onMouseEnter={() => setActiveIndex(index)}
+            onFocus={() => setActiveIndex(index)}
+          >
+            <span className="analytics-lollipop__rank">0{index + 1}</span>
+            <span className="analytics-lollipop__label">{item.label}</span>
+            <span className="analytics-lollipop__value">{item.value}</span>
+            <span className="analytics-lollipop__rail">
+              <i style={cssVar("--analytics-lollipop-width", `${(item.value / maxValue) * 100}%`)} />
+            </span>
+            <small>{item.share}%</small>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CATEGORY_LABELS = [
+  "IT",
+  "Поддержка",
+  "Админ.",
+  "Производ.",
+  "Образов.",
+  "Другие",
+];
+
+interface CategorySkylineChartProps {
+  items: CategoryItem[];
+}
+
+const CategorySkylineChart = ({ items }: CategorySkylineChartProps) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = items[activeIndex];
+  const maxValue = Math.max(...items.map((item) => item.value));
+
+  return (
+    <div className="analytics-skyline">
+      <div className="analytics-skyline__summary">
+        <div>
+          <span>Выбрано направление</span>
+          <strong>{active.label}</strong>
+        </div>
+        <b>{active.value}</b>
+        <small>+{active.trend}% за период</small>
+      </div>
+
+      <div className="analytics-skyline__plot" role="img" aria-label="Распределение вакансий по направлениям">
+        {items.map((item, index) => (
+          <div className="analytics-skyline__column" key={item.label}>
+            <button
+              className={`analytics-skyline__bar ${index === activeIndex ? "is-active" : ""}`}
+              type="button"
+              aria-label={`${item.label}: ${item.value} вакансий`}
+              style={cssVar("--analytics-skyline-height", `${(item.value / maxValue) * 100}%`)}
+              onClick={() => setActiveIndex(index)}
+              onMouseEnter={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+            >
+              <strong>{item.value}</strong>
+              <i />
+            </button>
+            <span>{CATEGORY_LABELS[index]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const SummaryIcon = ({ id }: { id: string }) => {
   if (id === "candidates") {
@@ -435,9 +720,6 @@ export const AnalyticsPage = () => {
       </section>
     );
   }
-
-  const maxRegion = Math.max(...data.regions.map((item) => item.value));
-  const maxCategory = Math.max(...data.categories.map((item) => item.value));
 
   return (
     <section className="analytics-page">
@@ -552,7 +834,7 @@ export const AnalyticsPage = () => {
       </div>
 
       <div className="analytics-grid analytics-grid--two">
-        <article className="analytics-card">
+        <article className="analytics-card analytics-card--orbit">
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Собеседования</span>
@@ -560,10 +842,10 @@ export const AnalyticsPage = () => {
               <p>Динамика за последние шесть месяцев</p>
             </div>
           </div>
-          <InterviewBars items={data.interviewDynamics} />
+          <InterviewOrbit items={data.interviewDynamics} />
         </article>
 
-        <article className="analytics-card">
+        <article className="analytics-card analytics-card--radar">
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Инклюзивность</span>
@@ -571,12 +853,12 @@ export const AnalyticsPage = () => {
               <p>Доля вакансий с конкретными условиями адаптации</p>
             </div>
           </div>
-          <AccessibilityList items={data.accessibility} />
+          <AccessibilityRadar items={data.accessibility} />
         </article>
       </div>
 
       <div className="analytics-grid analytics-grid--two">
-        <article className="analytics-card">
+        <article className="analytics-card analytics-card--lollipop">
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">География</span>
@@ -585,26 +867,10 @@ export const AnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="analytics-ranking">
-            {data.regions.map((item, index) => (
-              <div className="analytics-ranking__item" key={item.label}>
-                <span className="analytics-ranking__number">0{index + 1}</span>
-                <div>
-                  <div className="analytics-ranking__head">
-                    <strong>{item.label}</strong>
-                    <span>{formatNumber(item.value)} вакансий</span>
-                  </div>
-                  <div className="analytics-ranking__track">
-                    <i style={cssVar("--analytics-progress-width", `${(item.value / maxRegion) * 100}%`)} />
-                  </div>
-                </div>
-                <small>{item.share}%</small>
-              </div>
-            ))}
-          </div>
+          <RegionLollipopChart items={data.regions} />
         </article>
 
-        <article className="analytics-card">
+        <article className="analytics-card analytics-card--skyline">
           <div className="analytics-card__head">
             <div>
               <span className="analytics-card__eyebrow">Рынок вакансий</span>
@@ -613,20 +879,7 @@ export const AnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="analytics-categories">
-            {data.categories.map((item) => (
-              <div className="analytics-category" key={item.label}>
-                <div className="analytics-category__head">
-                  <strong>{item.label}</strong>
-                  <span>{formatNumber(item.value)}</span>
-                </div>
-                <div className="analytics-category__track">
-                  <i style={cssVar("--analytics-progress-width", `${(item.value / maxCategory) * 100}%`)} />
-                </div>
-                <small>+{item.trend}% за период</small>
-              </div>
-            ))}
-          </div>
+          <CategorySkylineChart items={data.categories} />
         </article>
       </div>
 
